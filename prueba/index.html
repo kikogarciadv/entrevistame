@@ -1,0 +1,759 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Prueba Entrevístame · Entrevista de 5 minutos por voz</title>
+<meta name="description" content="Elige empresa y puesto y haz una entrevista de práctica de 5 minutos hablando en voz alta con Lucía, la entrevistadora de IA. Al final, tu nota.">
+<meta property="og:title" content="Entrevístame: haz una entrevista de práctica de 5 minutos">
+<meta property="og:description" content="Habla con Lucía, te cambia al inglés sin avisar y te pone nota. ¿Superas la mía?">
+<meta name="theme-color" content="#F2F4F8">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='9' fill='%232341E0'/%3E%3Ccircle cx='16' cy='16' r='5' fill='%23E23B3B'/%3E%3C/svg%3E">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,400;12..96,500;12..96,600;12..96,800&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #F2F4F8;
+    --surface: #FFFFFF;
+    --ink: #121733;
+    --ink-soft: #4A5272;
+    --line: #D9DEEA;
+    --cobalt: #2341E0;
+    --cobalt-deep: #1A31AD;
+    --rec: #E23B3B;
+    --note: #FFD447;
+    --radius-window: 22px;
+    --radius-control: 12px;
+    --font: "Bricolage Grotesque", system-ui, sans-serif;
+  }
+  * { box-sizing: border-box; }
+  html { -webkit-text-size-adjust: 100%; }
+  body { margin: 0; background: var(--bg); color: var(--ink); font-family: var(--font); font-size: 1.0625rem; line-height: 1.55; font-optical-sizing: auto; }
+  a { color: var(--cobalt); }
+  :focus-visible { outline: 3px solid var(--cobalt); outline-offset: 3px; border-radius: 6px; }
+  [hidden] { display: none !important; }
+  .wrap { width: 100%; max-width: 640px; margin: 0 auto; padding: 0 20px; }
+
+  .top { display: flex; align-items: center; justify-content: space-between; padding-block: 18px; }
+  .brand { display: flex; align-items: center; gap: 10px; font-weight: 800; font-size: 1.2rem; letter-spacing: -0.01em; color: var(--ink); text-decoration: none; }
+  .brand-mark { width: 26px; height: 26px; border-radius: 8px; background: var(--cobalt); display: grid; place-items: center; }
+  .brand-mark span { width: 9px; height: 9px; border-radius: 50%; background: var(--rec); }
+  .top-link { font-weight: 600; color: var(--ink); text-decoration: none; padding: 10px 4px; }
+
+  h1 { font-size: clamp(2.2rem, 8vw, 3.4rem); line-height: 1; letter-spacing: -0.035em; font-weight: 800; margin: 12px 0 16px; max-width: 14ch; }
+  h2 { font-size: 1.6rem; line-height: 1.1; letter-spacing: -0.02em; font-weight: 800; margin: 0 0 12px; }
+  .lede { font-size: 1.15rem; color: var(--ink-soft); margin: 0 0 28px; max-width: 40ch; }
+  .small { font-size: 0.875rem; color: var(--ink-soft); margin: 0; }
+
+  .setup { display: grid; gap: 16px; padding-bottom: 56px; }
+  .field label { display: block; font-weight: 600; font-size: 0.95rem; margin-bottom: 6px; }
+  .field .hint { font-weight: 400; color: var(--ink-soft); }
+  .field input, .field select {
+    width: 100%; font: inherit; font-size: 1rem; color: var(--ink);
+    background: var(--surface); border: 1.5px solid var(--line); border-radius: var(--radius-control);
+    padding: 13px 14px; min-height: 50px;
+  }
+  .field input:focus, .field select:focus { border-color: var(--cobalt); outline: none; box-shadow: 0 0 0 3px rgba(35, 65, 224, 0.18); }
+  .field input[aria-invalid="true"] { border-color: var(--rec); }
+  .error { color: #B4232A; font-size: 0.9rem; margin: 6px 0 0; }
+  .btn {
+    font: inherit; font-weight: 700; font-size: 1.05rem; cursor: pointer; text-align: center; text-decoration: none; display: inline-block;
+    background: var(--cobalt); color: #fff; border: 0; border-radius: var(--radius-control);
+    padding: 15px 22px; min-height: 52px; transition: background-color 160ms ease, transform 120ms ease;
+  }
+  .btn:hover { background: var(--cobalt-deep); }
+  .btn:active { transform: translateY(1px); }
+  .btn[disabled] { opacity: 0.6; cursor: not-allowed; }
+  .btn.ghost { background: transparent; color: var(--ink); border: 1.5px solid var(--line); }
+  .btn.ghost:hover { border-color: var(--ink); }
+  .notice { background: var(--surface); border: 1.5px solid var(--line); border-left: 4px solid var(--rec); border-radius: var(--radius-control); padding: 16px 18px; }
+  .notice strong { display: block; margin-bottom: 4px; }
+  .notice p { margin: 0 0 10px; color: var(--ink-soft); }
+  .notice p:last-child { margin-bottom: 0; }
+  .facts { list-style: none; padding: 0; margin: 4px 0 0; display: grid; gap: 8px; color: var(--ink-soft); font-size: 0.95rem; }
+  .facts li { padding-left: 16px; border-left: 3px solid var(--cobalt); }
+
+  /* Llamada */
+  .call { background: var(--surface); border-radius: var(--radius-window); border: 1.5px solid var(--line); box-shadow: 0 30px 60px -30px rgba(18, 23, 51, 0.35); overflow: hidden; margin-bottom: 56px; }
+  .call-bar { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 14px 18px; border-bottom: 1.5px solid var(--line); font-size: 0.92rem; }
+  .call-who { font-weight: 700; }
+  .call-who small { display: block; font-weight: 400; color: var(--ink-soft); font-size: 0.85rem; }
+  .rec { display: inline-flex; align-items: center; gap: 7px; font-weight: 600; color: var(--rec); white-space: nowrap; }
+  .rec i { width: 9px; height: 9px; border-radius: 50%; background: var(--rec); animation: pulse 1.6s ease-in-out infinite; }
+  @keyframes pulse { 50% { opacity: 0.25; } }
+  .call-timer { font-variant-numeric: tabular-nums; color: var(--ink-soft); margin-right: 10px; }
+  .stage { position: relative; background: var(--ink); color: #fff; padding: 36px 18px 92px; display: grid; justify-items: center; gap: 12px; min-height: 260px; align-content: center; }
+  .speaker { position: relative; width: 112px; height: 112px; display: grid; place-items: center; }
+  .speaker .face { position: relative; z-index: 1; width: 96px; height: 96px; border-radius: 50%; background: var(--cobalt); display: grid; place-items: center; font-size: 2.4rem; font-weight: 800; }
+  .speaker .ring { position: absolute; inset: 0; border-radius: 50%; border: 2px solid rgba(255,255,255,0.55); opacity: 0; }
+  .stage[data-speaking="ai"] .speaker .ring { animation: ring 1.6s ease-out infinite; }
+  .stage[data-speaking="ai"] .speaker .ring + .ring { animation-delay: 0.8s; }
+  @keyframes ring { from { transform: scale(0.86); opacity: 0.9; } to { transform: scale(1.35); opacity: 0; } }
+  .speaker-name { font-weight: 600; text-align: center; line-height: 1.3; }
+  .speaker-name small { display: block; font-weight: 400; color: #B9C0DC; font-size: 0.85rem; }
+  .progress { position: absolute; left: 14px; top: 12px; font-size: 0.8rem; color: #B9C0DC; font-variant-numeric: tabular-nums; }
+  .self { position: absolute; right: 12px; bottom: 12px; width: 96px; height: 72px; border-radius: 12px; background: #262C52; display: grid; place-items: center; align-content: center; gap: 4px; font-size: 0.75rem; color: #B9C0DC; }
+  .self svg { width: 20px; height: 20px; }
+  .self .bars { display: flex; gap: 3px; align-items: center; height: 16px; }
+  .self .bars b { width: 3px; height: 4px; border-radius: 2px; background: #fff; }
+  .stage[data-speaking="me"] .self { outline: 2px solid #fff; }
+  .stage[data-speaking="me"] .self .bars b { animation: bar 0.5s ease-in-out infinite alternate; }
+  .self .bars b:nth-child(2) { animation-delay: 0.15s; } .self .bars b:nth-child(3) { animation-delay: 0.3s; } .self .bars b:nth-child(4) { animation-delay: 0.1s; }
+  @keyframes bar { to { height: 15px; } }
+  .captions { padding: 16px 18px 8px; min-height: 120px; }
+  .caption-who { font-size: 0.82rem; font-weight: 600; color: var(--ink-soft); display: flex; gap: 8px; align-items: center; margin-bottom: 4px; }
+  .lang { font-size: 0.75rem; font-weight: 700; padding: 1px 7px; border-radius: 999px; background: var(--bg); color: var(--ink); }
+  .lang.en { background: var(--note); }
+  .caption-text { margin: 0; font-size: 1.1rem; line-height: 1.4; }
+  .heard { margin: 10px 0 0; color: var(--ink-soft); font-size: 0.98rem; min-height: 1.4em; }
+  .call-actions { display: flex; gap: 12px; padding: 10px 18px 18px; align-items: center; }
+  .call-actions .btn { flex: 1; }
+  .hang { flex: none; width: 64px; height: 52px; border-radius: 999px; border: 0; background: var(--rec); color: #fff; display: grid; place-items: center; cursor: pointer; }
+  .hang:hover { background: #C42F2F; }
+  .hang svg { width: 22px; height: 22px; }
+
+  /* Resultado */
+  .result { padding-bottom: 64px; display: grid; gap: 28px; }
+  .scorecard { background: var(--note); color: var(--ink); border-radius: 6px; padding: 26px 24px 24px; max-width: 400px; width: 100%; transform: rotate(-1.5deg); justify-self: center; box-shadow: 0 24px 40px -20px rgba(18,23,51,0.45); margin-top: 8px; }
+  .sc-head { display: flex; justify-content: space-between; align-items: baseline; gap: 12px; font-weight: 600; font-size: 0.95rem; }
+  .grade { font-size: 5.4rem; font-weight: 800; line-height: 1; letter-spacing: -0.05em; margin: 10px 0 14px; }
+  .grade small { font-size: 1.6rem; letter-spacing: 0; }
+  .scorecard dl { margin: 0 0 16px; display: grid; grid-template-columns: 1fr auto; gap: 6px 12px; }
+  .scorecard dt, .scorecard dd { margin: 0; }
+  .scorecard dd { font-weight: 700; font-variant-numeric: tabular-nums; }
+  .roast { margin: 0; padding-top: 14px; border-top: 2px dashed rgba(18,23,51,0.35); font-size: 1.05rem; line-height: 1.35; }
+  .share-row { display: flex; gap: 12px; flex-wrap: wrap; }
+  .share-row .btn { flex: 1 1 200px; }
+  .review { list-style: none; padding: 0; margin: 0; display: grid; gap: 14px; }
+  .review li { background: var(--surface); border: 1.5px solid var(--line); border-radius: var(--radius-control); padding: 16px 18px; }
+  .review .q { font-weight: 700; margin: 0 0 6px; }
+  .review .src { font-size: 0.8rem; font-weight: 600; color: var(--ink-soft); margin: 0 0 8px; }
+  .review .a { margin: 0 0 8px; color: var(--ink-soft); }
+  .review .stats { font-size: 0.88rem; margin: 0; }
+  .signup { display: grid; gap: 14px; background: var(--surface); border: 1.5px solid var(--line); border-radius: var(--radius-window); padding: 22px; }
+  .consent { display: flex; gap: 10px; align-items: flex-start; font-size: 0.9rem; color: var(--ink-soft); }
+  .consent input { width: 20px; height: 20px; margin: 2px 0 0; accent-color: var(--cobalt); flex: none; }
+  .done h3 { margin: 0 0 6px; font-size: 1.3rem; }
+  .done p { margin: 0; color: var(--ink-soft); }
+
+  footer { padding-block: 28px 40px; border-top: 1.5px solid var(--line); color: var(--ink-soft); font-size: 0.88rem; }
+  footer p { margin: 0 0 8px; }
+
+  @media (prefers-reduced-motion: reduce) {
+    .rec i, .stage .ring, .self .bars b { animation: none !important; }
+    .btn { transition: none; }
+  }
+</style>
+</head>
+<body>
+
+<header class="wrap top">
+  <a class="brand" href="../">
+    <span class="brand-mark" aria-hidden="true"><span></span></span>
+    Entrevístame
+  </a>
+  <a class="top-link" href="../#apuntarme">Lista de espera</a>
+</header>
+
+<main class="wrap">
+  <!-- 1. Preparación -->
+  <section id="screen-setup" aria-labelledby="t-setup">
+    <h1 id="t-setup">Haz una entrevista de 5 minutos.</h1>
+    <p class="lede">Lucía te hará 5 preguntas en voz alta. Contesta hablando, como en una llamada. Una de ellas llegará en inglés.</p>
+
+    <div class="notice" id="browser-warning" hidden role="alert">
+      <strong id="bw-title">Tu navegador no permite la llamada</strong>
+      <p id="bw-text">Abre esta página en Chrome (Android u ordenador) o en Safari (iPhone).</p>
+      <p><button class="btn ghost" type="button" id="copy-link">Copiar enlace</button></p>
+    </div>
+
+    <form class="setup" id="setup" novalidate>
+      <div class="field">
+        <label for="empresa">Empresa</label>
+        <input id="empresa" name="empresa" list="empresas" autocomplete="organization" placeholder="Por ejemplo, Mercadona" required>
+        <datalist id="empresas"></datalist>
+      </div>
+      <div class="field">
+        <label for="puesto">Puesto</label>
+        <select id="puesto" name="puesto"></select>
+      </div>
+      <button class="btn" type="submit" id="start">Empezar la llamada</button>
+      <ul class="facts">
+        <li>Necesitas un sitio tranquilo y dar permiso al micrófono.</li>
+        <li>Cuando acabes una respuesta, quédate en silencio unos segundos o pulsa «He terminado».</li>
+        <li>No grabamos tu voz. La transcribe el reconocimiento de voz de tu navegador (Google en Chrome, Apple en Safari) y la nota se calcula en esta página.</li>
+      </ul>
+    </form>
+  </section>
+
+  <!-- 2. Llamada -->
+  <section id="screen-call" hidden aria-label="Llamada con Lucía">
+    <div class="call">
+      <div class="call-bar">
+        <span class="call-who"><span id="call-company"></span><small id="call-role"></small></span>
+        <span><span class="call-timer" id="timer">00:00</span><span class="rec"><i></i>En llamada</span></span>
+      </div>
+      <div class="stage" id="stage" data-speaking="ai">
+        <span class="progress" id="progress"></span>
+        <div class="speaker" aria-hidden="true"><span class="ring"></span><span class="ring"></span><span class="face">L</span></div>
+        <div class="speaker-name">Lucía<small>Entrevistadora de IA</small></div>
+        <div class="self" aria-hidden="true">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M16 16v1a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V7a2 2 0 0 1 2-2h2m5.66 0H14a2 2 0 0 1 2 2v3.34l1 1L23 7v10"/><line x1="1" y1="1" x2="23" y2="23"/></svg>
+          <span class="bars"><b></b><b></b><b></b><b></b></span>
+          Tú
+        </div>
+      </div>
+      <div class="captions" aria-live="polite">
+        <div class="caption-who"><span id="cap-who">Lucía</span><span class="lang" id="cap-lang">ES</span></div>
+        <p class="caption-text" id="cap-text">Conectando…</p>
+        <p class="heard" id="heard"></p>
+      </div>
+      <div class="call-actions">
+        <button class="btn" type="button" id="next" disabled>He terminado</button>
+        <button class="hang" type="button" id="hang" aria-label="Colgar y ver mi nota">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M10.7 13.3a16 16 0 0 0 3.4 2.6l1.3-1.3a2 2 0 0 1 2.1-.4c.9.3 1.8.5 2.7.6a2 2 0 0 1 1.7 2v3a2 2 0 0 1-2.2 2A19.8 19.8 0 0 1 3 4.2 2 2 0 0 1 5 2h3a2 2 0 0 1 2 1.7c.1.9.3 1.8.6 2.7a2 2 0 0 1-.4 2.1L8.9 9.8" transform="rotate(135 12 12)"/></svg>
+        </button>
+      </div>
+    </div>
+  </section>
+
+  <!-- 3. Nota -->
+  <section id="screen-result" hidden aria-labelledby="t-result">
+    <div class="result">
+      <div>
+        <h1 id="t-result" tabindex="-1">Tu nota</h1>
+        <p class="small">Nota orientativa. Esta demo mide cómo hablas: rapidez al arrancar, muletillas, cuánto desarrollas y tu inglés. Todavía no evalúa si lo que dices es bueno; eso llega en la versión completa.</p>
+      </div>
+
+      <div class="scorecard" id="scorecard">
+        <div class="sc-head"><span id="sc-who"></span><span>Ensayo 1</span></div>
+        <div class="grade"><span id="sc-grade"></span><small>/10</small></div>
+        <dl id="sc-list"></dl>
+        <p class="roast" id="sc-roast"></p>
+      </div>
+
+      <div class="share-row">
+        <button class="btn" type="button" id="share">Retar a un amigo</button>
+        <button class="btn ghost" type="button" id="again">Repetir la entrevista</button>
+      </div>
+
+      <div>
+        <h2>Pregunta a pregunta</h2>
+        <ol class="review" id="review"></ol>
+      </div>
+
+      <form class="signup" id="form-prueba" novalidate>
+        <h2>¿Quieres la versión completa?</h2>
+        <p class="small">15 minutos, con el proceso real de tu empresa, repreguntas y una nota sobre lo que dices, no solo sobre cómo lo dices.</p>
+        <div class="field">
+          <label for="email">Tu email</label>
+          <input id="email" name="email" type="email" autocomplete="email" inputmode="email" required>
+        </div>
+        <div class="field">
+          <label for="pagaria">¿Pagarías por ella?</label>
+          <select id="pagaria" name="pagaria">
+            <option value="si-5">Sí, unos 5 € por entrevista</option>
+            <option value="si-pack">Sí, si es un pack barato</option>
+            <option value="solo-gratis">Solo si es gratis</option>
+          </select>
+        </div>
+        <div class="field">
+          <label for="cuando">¿Cuándo es tu próxima entrevista?</label>
+          <select id="cuando" name="cuando">
+            <option value="sin-fecha">Todavía no tengo ninguna</option>
+            <option value="esta-semana">Esta semana</option>
+            <option value="este-mes">Este mes</option>
+            <option value="mas-adelante">Más adelante</option>
+          </select>
+        </div>
+        <label class="consent">
+          <input type="checkbox" name="consentimiento" id="consent" required>
+          <span>Acepto que me escribáis cuando abra la app. Nada más.</span>
+        </label>
+        <button class="btn" type="submit">Apuntarme a la lista</button>
+      </form>
+    </div>
+  </section>
+</main>
+
+<footer class="wrap">
+  <p>Entrevístame no tiene relación con las empresas que aparecen. Las preguntas marcadas como «basada en candidatos» resumen experiencias publicadas en Glassdoor y prensa; los procesos cambian según ciudad, fecha y puesto. El resto son preguntas de práctica para el puesto.</p>
+  <p>Privacidad: si te apuntas, guardamos tu email, tus respuestas al formulario y tu nota, no lo que dijiste. Para borrarlos escribe a <a href="mailto:kikogdv@gmail.com">kikogdv@gmail.com</a>.</p>
+</footer>
+
+<script>
+  const FORM_ENDPOINT = "https://formspree.io/f/meaavlzv";
+
+  // Preguntas de práctica por puesto (redactadas para la app, no son citas).
+  const PROFILES = {
+    ventas: { label: "Ventas y dependiente/a", qs: [
+      "¿Cómo ayudarías a una persona que no encuentra la talla que busca?",
+      "¿Qué harías si hay varios clientes esperando a la vez?",
+      "¿Qué producto o colección recomendarías ahora mismo y por qué?"],
+      en: "Tell me about a time you helped a customer who was unhappy." },
+    caja: { label: "Caja y supermercado", qs: [
+      "¿Cómo actuarías si un cliente dice que se le ha cobrado mal?",
+      "¿Cómo organizarías las tareas si hay cola y falta producto en una sección?",
+      "¿Qué harías si un compañero necesita ayuda en hora punta?"],
+      en: "A customer says you charged them twice. What do you do?" },
+    almacen: { label: "Almacén y logística", qs: [
+      "¿Cómo priorizarías varios pedidos urgentes?",
+      "¿Qué comprobarías antes de mover una carga?",
+      "Cuéntame cómo mantienes la precisión cuando trabajas con objetivos de tiempo."],
+      en: "How do you stay accurate when you are working against the clock?" },
+    auditoria: { label: "Auditoría y contabilidad", qs: [
+      "¿Cómo investigarías una diferencia entre el saldo y los justificantes?",
+      "¿Qué representa el principio de devengo?",
+      "¿Cómo explicarías un asiento contable de venta?"],
+      en: "How would you explain a cash flow statement to someone without a finance background?" },
+    consultoria: { label: "Consultoría y estrategia", qs: [
+      "Una empresa ha perdido margen. ¿Qué datos pedirías primero?",
+      "¿Cómo estimarías el tamaño de un mercado?",
+      "Cuéntame una ocasión en la que tuviste que convencer a otra persona."],
+      en: "Tell me about a time you had to convince someone to change their mind." },
+    software: { label: "Ingeniería de software", qs: [
+      "Háblame de un proyecto que hayas desarrollado y de una decisión técnica que tomaste.",
+      "¿Cómo investigarías una caída de rendimiento en una API?",
+      "¿Cómo probarías un cambio antes de publicarlo?"],
+      en: "Tell me about a technical decision you made in a project and why." },
+    datos: { label: "Datos y BI", qs: [
+      "¿Cómo comprobarías que los datos de un informe son fiables?",
+      "Si baja la conversión, ¿qué analizarías?",
+      "¿Cómo explicarías un hallazgo técnico a un equipo comercial?"],
+      en: "How would you explain a complex finding to a sales team?" },
+    atencion: { label: "Atención al cliente", qs: [
+      "¿Cómo responderías a una persona enfadada por un retraso?",
+      "¿Cómo atenderías varias solicitudes urgentes a la vez?",
+      "¿Cuándo escalarías un caso a otra persona?"],
+      en: "How would you handle an angry customer whose order is late?" },
+    industrial: { label: "Mantenimiento e ingeniería industrial", qs: [
+      "¿Cómo investigarías un fallo que vuelve a ocurrir?",
+      "¿Cómo priorizarías el mantenimiento preventivo frente a la producción?",
+      "¿Qué medidas tomarías antes de intervenir en un equipo?"],
+      en: "Describe a technical problem you solved and how you found the cause." },
+    marketing: { label: "Marketing y producto", qs: [
+      "¿Cómo lanzarías un producto para un público concreto?",
+      "¿Qué indicadores usarías para evaluar una campaña?",
+      "¿Qué investigarías si un competidor gana cuota?"],
+      en: "How would you measure whether a campaign worked?" },
+    admin: { label: "Administración y RR. HH.", qs: [
+      "¿Cómo organizarías tareas de varias personas con plazos que coinciden?",
+      "¿Cómo manejarías información confidencial?",
+      "¿Qué tareas de Excel has automatizado o mejorado?"],
+      en: "How do you organise your work when several deadlines arrive at once?" },
+    hosteleria: { label: "Hostelería y tripulación", qs: [
+      "¿Cómo resolverías una queja sin dejar de dar buen servicio?",
+      "¿Cómo priorizarías la seguridad y la atención en una situación tensa?",
+      "¿Cómo describirías tu experiencia atendiendo al público?"],
+      en: "Tell me about a time you dealt with a difficult guest." }
+  };
+
+  // Empresas con temas que aparecen en experiencias de candidatos (resumidos, no citas).
+  const REPORTED = {
+    "Inditex": { perfil: "ventas", qs: [
+      "¿Qué sabes de nuestras marcas y en cuál te ves trabajando?",
+      "¿Qué aportarías tú al equipo de tienda?",
+      "¿Qué disponibilidad de horario tienes?"] },
+    "Mercadona": { perfil: "caja", qs: [
+      "Cuéntame tu experiencia y qué has estudiado.",
+      "¿Te ves trabajando mucho tiempo en Mercadona?",
+      "¿Qué disponibilidad tienes?"] },
+    "KPMG": { perfil: "consultoria", qs: [
+      "Cálculo rápido: una empresa factura 4 millones de euros con un margen del 15 %. ¿Cuánto gana?",
+      "¿Por qué consultoría y por qué KPMG?"] },
+    "PwC": { perfil: "auditoria", qs: [
+      "¿Qué diferencia hay entre beneficio y flujo de caja?",
+      "¿Por qué quieres empezar tu carrera en PwC?"] },
+    "Deloitte": { perfil: "consultoria", qs: [
+      "Cuéntame una experiencia en la que tuviste que resolver un problema complicado.",
+      "¿Por qué Deloitte y por qué este programa?"] },
+    "EY": { perfil: "consultoria", qs: [
+      "Háblame de una vez que tuviste que negociar algo.",
+      "¿Qué te motiva de EY frente a otras firmas?"] },
+    "Indra": { perfil: "software", qs: [
+      "¿Con qué tecnologías has trabajado y hasta qué nivel las dominas?",
+      "¿Te resulta cómodo trabajar con documentación técnica en inglés?"] },
+    "Capgemini": { perfil: "software", qs: [
+      "Háblame de los proyectos en los que has trabajado.",
+      "¿Qué papel tuviste tú en el último proyecto?"] },
+    "NTT DATA": { perfil: "software", qs: [
+      "Cuéntame tu trayectoria y las tecnologías que usas en el día a día."] },
+    "Sacyr": { perfil: "industrial", qs: [
+      "¿Qué proyectos de Sacyr conoces?",
+      "Cuéntame un problema técnico que hayas resuelto."] }
+  };
+  const ALIASES = {
+    "Zara": "Inditex", "Pull&Bear": "Inditex", "Massimo Dutti": "Inditex", "Bershka": "Inditex", "Stradivarius": "Inditex",
+    "Oysho": "Inditex", "Zara Home": "Inditex", "Lefties": "Inditex", "Minsait": "Indra", "Indra/Minsait": "Indra",
+    "Capgemini Engineering": "Capgemini"
+  };
+
+  // Catálogo por sector, con el puesto que se propone por defecto.
+  const CATALOG = [
+    ["ventas", "Inditex, Zara, Pull&Bear, Massimo Dutti, Bershka, Stradivarius, Oysho, Zara Home, Lefties, Mango, Cortefiel, Springfield, Women'secret, H&M, Primark, C&A, Kiabi, Uniqlo, Pepco, Action, El Corte Inglés, IKEA, Decathlon, Leroy Merlin, MediaMarkt, FNAC, PcComponentes, Worten, JYSK, JD Sports, Nike, Adidas, Foot Locker, Druni, Primor, Sephora, Douglas, Arenal, Kiwoko, Tiendanimal, Norauto, Feu Vert, Brico Depôt"],
+    ["caja", "Mercadona, Carrefour, Lidl, Aldi, DIA, Eroski, Consum, Alcampo, Ahorramás, Bonpreu, Gadisa, Froiz, Covirán, Makro, Costco, HiperDino, Spar"],
+    ["consultoria", "Deloitte, PwC, EY, KPMG, Accenture, Capgemini, NTT DATA, Indra, Minsait, IBM Consulting, Sopra Steria, Inetum, T-Systems, CGI, BearingPoint, McKinsey, BCG, Bain, Kearney, Oliver Wyman, Roland Berger, Strategy&, EY-Parthenon, Grant Thornton, BDO, RSM, Forvis Mazars, Crowe, Auren, Baker Tilly"],
+    ["atencion", "Santander, BBVA, CaixaBank, Banco Sabadell, Bankinter, Unicaja, Abanca, Kutxabank, Ibercaja, ING, Openbank, WiZink, Revolut, N26, Mapfre, Mutua Madrileña, AXA, Allianz, Generali, Zurich, Línea Directa, Sanitas, DKV, Santalucía, Ebury, Wise, Qonto, Stripe, Adyen, Klarna"],
+    ["software", "Google, Microsoft, Amazon, AWS, Apple, Meta, Salesforce, Oracle, SAP, Cisco, HP, Huawei, Telefónica, Vodafone, MasOrange, Digi, Cellnex, Amadeus, Glovo, Cabify, Wallapop, Idealista, eDreams, TravelPerk, Factorial, Typeform, Jobandtalent, Fever, Devo, Sngular, Plain Concepts, Freepik, Seedtag, Cobee, Red Points, Clarity AI"],
+    ["industrial", "Iberdrola, Endesa, Naturgy, Repsol, Moeve, Acciona Energía, EDP, Enagás, Redeia, Holaluz, TotalEnergies, Galp, BP, Siemens Gamesa, Vestas, Schneider Electric, ACS, Ferrovial, Acciona, Sacyr, FCC, OHLA, Técnicas Reunidas, Sener, IDOM, Ayesa, Airbus, Navantia, CAF, Talgo, SEAT/CUPRA, Renault, Stellantis, Ford, Mercedes-Benz, Gestamp, CIE Automotive, ArcelorMittal, Acerinox, Michelin, Bosch, Saica"],
+    ["almacen", "Correos, Amazon Logistics, SEUR, MRW, DHL, UPS, GLS, NACEX, CTT Express, XPO, DB Schenker, GXO, Logista, Maersk, Renfe, Adif, Alsa, Vueling, Iberia, Air Europa, Ryanair, Aena, IAG"],
+    ["hosteleria", "Coca-Cola Europacific Partners, Mahou San Miguel, Heineken España, Damm, Estrella Galicia, Calidad Pascual, Campofrío, Bimbo, Nestlé, Danone, PepsiCo, Unilever, Mondelez, McDonald's, Burger King, KFC, Alsea, VIPS, Restalia, Telepizza, Goiko, Five Guys, Meliá, Barceló, RIU, Iberostar, NH Hotels, Eurostars, Paradores, Grifols, PharmaMar, Almirall, Rovi, Esteve, Ferrer, Cinfa, Kern Pharma, Werfen, Quirónsalud, HM Hospitales, Vithas, Ribera Salud, Fresenius"]
+  ];
+
+  const norm = (s) => s.normalize("NFD").replace(/[̀-ͯ]/g, "").toLowerCase().trim();
+  const COMPANY = new Map(); // nombre normalizado -> { name, perfil }
+  CATALOG.forEach(([perfil, list]) => list.split(", ").forEach((name) => COMPANY.set(norm(name), { name, perfil })));
+
+  const $ = (id) => document.getElementById(id);
+  const datalist = $("empresas");
+  [...COMPANY.values()].sort((a, b) => a.name.localeCompare(b.name, "es")).forEach((c) => {
+    const o = document.createElement("option"); o.value = c.name; datalist.appendChild(o);
+  });
+  const puesto = $("puesto");
+  Object.entries(PROFILES).forEach(([k, p]) => {
+    const o = document.createElement("option"); o.value = k; o.textContent = p.label; puesto.appendChild(o);
+  });
+
+  function lookup(raw) {
+    const known = COMPANY.get(norm(raw));
+    const name = known ? known.name : raw.trim();
+    const group = ALIASES[name] || name;
+    const reported = REPORTED[group] || null;
+    return { name, reported, perfil: (reported && reported.perfil) || (known && known.perfil) || null };
+  }
+  let puestoTouched = false;
+  puesto.addEventListener("change", () => { puestoTouched = true; });
+  $("empresa").addEventListener("input", (e) => {
+    clearError(e.target);
+    const info = lookup(e.target.value);
+    if (info.perfil && !puestoTouched) puesto.value = info.perfil;
+  });
+
+  // Compatibilidad del navegador
+  const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
+  const inApp = /TikTok|musical_ly|Bytedance|Instagram|FBAN|FBAV|Twitter/i.test(navigator.userAgent);
+  if (inApp || !SR || !window.speechSynthesis) {
+    $("browser-warning").hidden = false;
+    if (inApp) {
+      $("bw-title").textContent = "Ábrela en tu navegador";
+      $("bw-text").textContent = "Desde la app de TikTok o Instagram no funciona el micrófono. Pulsa los tres puntos y elige «Abrir en el navegador», o copia el enlace y pégalo en Chrome o Safari.";
+    }
+    $("start").disabled = true;
+  }
+  $("copy-link").addEventListener("click", async (e) => {
+    try { await navigator.clipboard.writeText(location.href); e.target.textContent = "Enlace copiado"; }
+    catch { e.target.textContent = location.href; }
+  });
+
+  // Voz de Lucía
+  let voices = [];
+  const loadVoices = () => { voices = speechSynthesis.getVoices(); };
+  if (window.speechSynthesis) { loadVoices(); speechSynthesis.addEventListener?.("voiceschanged", loadVoices); }
+  function pickVoice(lang) {
+    const prefix = lang.slice(0, 2);
+    const female = /m[oó]nica|elvira|helena|laura|luc[ií]a|paulina|marisol|sabina|google español|samantha|serena|kate|sonia|libby|google uk english female/i;
+    const cands = voices.filter((v) => v.lang.replace("_", "-").startsWith(prefix));
+    const score = (v) => (v.lang.replace("_", "-") === lang ? 2 : 0) + (female.test(v.name) ? 1 : 0) + (v.localService ? 0 : 0.5);
+    return cands.sort((a, b) => score(b) - score(a))[0] || null;
+  }
+  function speak(text, lang) {
+    return new Promise((resolve) => {
+      const u = new SpeechSynthesisUtterance(text);
+      u.lang = lang; u.rate = 1; u.pitch = 1.05;
+      const v = pickVoice(lang); if (v) u.voice = v;
+      let done = false;
+      const finish = () => { if (!done) { done = true; resolve(); } };
+      u.onend = finish; u.onerror = finish;
+      // Algunos navegadores no disparan onend: plan B por duración estimada.
+      setTimeout(finish, text.split(/\s+/).length * 480 + 2500);
+      speechSynthesis.cancel();
+      speechSynthesis.speak(u);
+    });
+  }
+
+  // Escucha una respuesta. Termina tras 4 s de silencio, con el botón o a los 2 minutos.
+  let current = null;
+  function listen(lang) {
+    return new Promise((resolve, reject) => {
+      const rec = new SR();
+      rec.lang = lang; rec.continuous = true; rec.interimResults = true;
+      const t0 = performance.now();
+      let finalText = "", interim = "", first = null, last = null, ended = false;
+      const heard = $("heard");
+      const finish = () => {
+        if (ended) return; ended = true;
+        clearInterval(tick); try { rec.stop(); } catch {}
+        current = null;
+        const text = (finalText + " " + interim).replace(/\s+/g, " ").trim();
+        resolve({ text, latency: first ? (first - t0) / 1000 : null, duration: (performance.now() - t0) / 1000 });
+      };
+      rec.onresult = (e) => {
+        const now = performance.now();
+        if (!first) first = now;
+        last = now;
+        interim = "";
+        for (let i = e.resultIndex; i < e.results.length; i++) {
+          if (e.results[i].isFinal) finalText += " " + e.results[i][0].transcript;
+          else interim += e.results[i][0].transcript;
+        }
+        heard.textContent = (finalText + " " + interim).trim();
+        $("next").disabled = false;
+      };
+      rec.onerror = (e) => {
+        if (e.error === "not-allowed" || e.error === "service-not-allowed") { ended = true; clearInterval(tick); reject(new Error("mic")); }
+      };
+      rec.onend = () => { if (!ended) { try { rec.start(); } catch { finish(); } } };
+      const tick = setInterval(() => {
+        const now = performance.now();
+        if (last && now - last > 4000) finish();
+        else if (!first && now - t0 > 30000) finish();
+        else if (now - t0 > 120000) finish();
+      }, 300);
+      current = { finish };
+      rec.start();
+    });
+  }
+
+  // Interfaz de la llamada
+  const stage = $("stage");
+  function caption(who, lang, text) {
+    $("cap-who").textContent = who;
+    $("cap-lang").textContent = lang.startsWith("en") ? "EN" : "ES";
+    $("cap-lang").classList.toggle("en", lang.startsWith("en"));
+    $("cap-text").textContent = text;
+  }
+  let timerId = null, hungUp = false;
+  function startTimer() {
+    const t0 = Date.now();
+    timerId = setInterval(() => {
+      const s = Math.floor((Date.now() - t0) / 1000);
+      $("timer").textContent = String(Math.floor(s / 60)).padStart(2, "0") + ":" + String(s % 60).padStart(2, "0");
+    }, 1000);
+  }
+  const shuffle = (a) => a.map((x) => [Math.random(), x]).sort((p, q) => p[0] - q[0]).map((p) => p[1]);
+
+  function buildInterview(info, perfilKey) {
+    const p = PROFILES[perfilKey];
+    const pq = shuffle(p.qs);
+    const rq = info.reported ? shuffle(info.reported.qs) : [];
+    const SRC_R = "Basada en experiencias de candidatos";
+    const SRC_P = "Pregunta de práctica para el puesto";
+    const SRC_G = "Pregunta general";
+    return [
+      { lang: "es-ES", src: SRC_G, text: `Hola, soy Lucía y hoy te entrevisto para ${info.name}. Para empezar, preséntate en un minuto.` },
+      rq[0] ? { lang: "es-ES", src: SRC_R, text: rq[0] } : { lang: "es-ES", src: SRC_G, text: `¿Por qué quieres trabajar en ${info.name} y no en otra empresa del sector?` },
+      { lang: "es-ES", src: SRC_P, text: pq[0] },
+      rq[1] ? { lang: "es-ES", src: SRC_R, text: rq[1] } : { lang: "es-ES", src: SRC_P, text: pq[1] },
+      { lang: "en-US", src: "Cambio al inglés sin avisar", text: "Okay, let's switch to English for a moment. " + p.en }
+    ];
+  }
+
+  let session = null;
+  $("setup").addEventListener("submit", async (e) => {
+    e.preventDefault();
+    const empresaInput = $("empresa");
+    if (!empresaInput.value.trim()) { showError(empresaInput, "Escribe la empresa para la que quieres practicar."); empresaInput.focus(); return; }
+    // Desbloquea la voz en iPhone: tiene que arrancar dentro del toque.
+    speechSynthesis.speak(new SpeechSynthesisUtterance(" "));
+
+    $("start").disabled = true; $("start").textContent = "Pidiendo el micrófono…";
+    try {
+      const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+      stream.getTracks().forEach((t) => t.stop());
+    } catch {
+      $("start").disabled = false; $("start").textContent = "Empezar la llamada";
+      showError(empresaInput, "Necesitamos el micrófono para la llamada. Dale permiso en los ajustes del navegador y vuelve a intentarlo.");
+      return;
+    }
+    const info = lookup(empresaInput.value);
+    session = { info, perfil: puesto.value, questions: buildInterview(info, puesto.value), answers: [] };
+    runCall();
+  });
+
+  async function runCall() {
+    hungUp = false;
+    $("screen-setup").hidden = true; $("screen-result").hidden = true; $("screen-call").hidden = false;
+    $("call-company").textContent = session.info.name;
+    $("call-role").textContent = PROFILES[session.perfil].label;
+    $("timer").textContent = "00:00";
+    startTimer();
+    window.scrollTo(0, 0);
+
+    const qs = session.questions;
+    for (let i = 0; i < qs.length && !hungUp; i++) {
+      const q = qs[i];
+      $("progress").textContent = `Pregunta ${i + 1} de ${qs.length}`;
+      $("heard").textContent = "";
+      $("next").disabled = true;
+      stage.dataset.speaking = "ai";
+      caption("Lucía", q.lang, q.text);
+      await speak(q.text, q.lang);
+      if (hungUp) break;
+      stage.dataset.speaking = "me";
+      caption("Lucía", q.lang, q.text);
+      $("cap-who").textContent = "Tu turno";
+      try {
+        const a = await listen(q.lang);
+        session.answers.push({ q: q.text, lang: q.lang, src: q.src, text: a.text, latency: a.latency, duration: a.duration });
+      } catch {
+        hungUp = true;
+        endCall();
+        $("screen-call").hidden = true; $("screen-setup").hidden = false;
+        $("start").disabled = false; $("start").textContent = "Empezar la llamada";
+        showError($("empresa"), "No tenemos permiso para usar el micrófono. Actívalo en los ajustes del navegador.");
+        return;
+      }
+    }
+    stage.dataset.speaking = "ai";
+    if (!hungUp) {
+      caption("Lucía", "es-ES", "Gracias, hemos terminado. Ahora te enseño tu nota.");
+      await speak("Gracias, hemos terminado. Ahora te enseño tu nota.", "es-ES");
+    }
+    endCall();
+    showResult();
+  }
+  function endCall() { clearInterval(timerId); speechSynthesis.cancel(); }
+
+  $("next").addEventListener("click", () => current && current.finish());
+  $("hang").addEventListener("click", () => {
+    hungUp = true;
+    speechSynthesis.cancel();
+    if (current) current.finish();
+  });
+
+  // Nota
+  const FILLERS = ["o sea", "osea", "en plan", "bueno", "pues", "vale", "tipo", "digamos", "sabes", "eh", "ehm", "em", "mmm"];
+  const clamp = (x, a, b) => Math.max(a, Math.min(b, x));
+  const fmt = (x) => (Math.round(x * 10) / 10).toLocaleString("es-ES");
+  const wordsOf = (t) => (t ? t.split(/\s+/).filter(Boolean).length : 0);
+  function countFillers(text) {
+    const t = " " + norm(text).replace(/[^a-zñ ]/g, " ") + " ";
+    const counts = {};
+    FILLERS.forEach((f) => { const m = t.split(" " + f + " ").length - 1; if (m) counts[f] = m; });
+    return counts;
+  }
+  function score(answers) {
+    const es = answers.filter((a) => a.lang.startsWith("es"));
+    const en = answers.find((a) => a.lang.startsWith("en"));
+    const fill = {};
+    es.forEach((a) => Object.entries(countFillers(a.text)).forEach(([k, v]) => { fill[k === "osea" ? "o sea" : k] = (fill[k === "osea" ? "o sea" : k] || 0) + v; }));
+    const esWords = es.reduce((s, a) => s + wordsOf(a.text), 0);
+    const fillTotal = Object.values(fill).reduce((s, v) => s + v, 0);
+    const per100 = esWords ? (fillTotal / esWords) * 100 : 0;
+    const claridad = esWords ? clamp(10 - per100 * 0.7, 2, 10) : 2;
+    const devPart = (w) => (w < 15 ? 3 : w < 35 ? 5.5 : w < 60 ? 7.5 : w <= 220 ? 9 : 7);
+    const desarrollo = es.length ? es.reduce((s, a) => s + devPart(wordsOf(a.text)), 0) / es.length : 2;
+    const latPart = (l) => (l == null ? 2 : l <= 1.5 ? 9.5 : l <= 3 ? 8 : l <= 5 ? 6 : l <= 8 ? 4.5 : 3);
+    const seguridad = answers.length ? answers.reduce((s, a) => s + latPart(a.latency), 0) / answers.length : 2;
+    const enW = en ? wordsOf(en.text) : 0;
+    const ingles = !en ? null : enW === 0 ? 1 : enW < 10 ? 4 : enW < 25 ? 6 : enW < 50 ? 8 : 9;
+    const parts = [desarrollo, seguridad, claridad].concat(ingles == null ? [] : [ingles]);
+    const nota = parts.reduce((s, x) => s + x, 0) / parts.length;
+    const lats = answers.filter((a) => a.latency != null).map((a) => a.latency);
+    const avgLat = lats.length ? lats.reduce((s, x) => s + x, 0) / lats.length : null;
+    const top = Object.entries(fill).sort((a, b) => b[1] - a[1])[0] || null;
+    return { nota, desarrollo, seguridad, claridad, ingles, enW, avgLat, top, fillTotal, esWords, esCount: es.length };
+  }
+  function roastFor(s) {
+    if (s.esWords === 0) return "Lucía ha hablado sola. La próxima vez, contesta tú también.";
+    if (s.top && s.top[1] >= 4) return `Dijiste «${s.top[0]}» ${s.top[1]} veces. Lucía ha dejado de contarlas.`;
+    if (s.ingles != null && s.ingles <= 4) return "Al pasar al inglés, silencio. Lucía sigue esperando.";
+    if (s.desarrollo < 5) return "Respuestas de telegrama. Cuéntale algo más que lo justo.";
+    if (s.avgLat != null && s.avgLat > 5) return `Tardaste ${fmt(s.avgLat)} segundos de media en arrancar. Ponle ritmo.`;
+    if (s.nota >= 8) return "Poco que reprochar. Sospechoso.";
+    return s.top ? `Tu muletilla favorita: «${s.top[0]}». Vigílala.` : "Ni una muletilla. Así sí.";
+  }
+
+  function showResult() {
+    const a = session.answers;
+    if (!a.length) { $("screen-call").hidden = true; $("screen-setup").hidden = false; $("start").disabled = false; $("start").textContent = "Empezar la llamada"; return; }
+    const s = score(a);
+    session.score = s;
+    $("sc-who").textContent = `${session.info.name}, ${PROFILES[session.perfil].label.toLowerCase()}`;
+    $("sc-grade").textContent = fmt(s.nota);
+    const rows = [["Desarrollo", fmt(s.desarrollo)], ["Rapidez al responder", fmt(s.seguridad)], ["Claridad (muletillas)", fmt(s.claridad)]];
+    if (s.ingles != null) rows.push(["Inglés", fmt(s.ingles)]);
+    if (s.avgLat != null) rows.push(["Tiempo medio en arrancar", fmt(s.avgLat) + " s"]);
+    rows.push(["Muletillas", String(s.fillTotal)]);
+    $("sc-list").innerHTML = "";
+    rows.forEach(([k, v]) => { const dt = document.createElement("dt"); dt.textContent = k; const dd = document.createElement("dd"); dd.textContent = v; $("sc-list").append(dt, dd); });
+    $("sc-roast").textContent = roastFor(s);
+
+    const list = $("review"); list.innerHTML = "";
+    a.forEach((ans) => {
+      const li = document.createElement("li");
+      const w = wordsOf(ans.text);
+      const f = Object.values(countFillers(ans.text)).reduce((x, y) => x + y, 0);
+      li.innerHTML = '<p class="q"></p><p class="src"></p><p class="a"></p><p class="stats"></p>';
+      li.querySelector(".q").textContent = ans.q;
+      li.querySelector(".src").textContent = ans.src;
+      li.querySelector(".a").textContent = ans.text ? "«" + ans.text + "»" : "No te hemos oído responder.";
+      li.querySelector(".stats").textContent = `${w} palabras · ${ans.latency != null ? "empezaste a los " + fmt(ans.latency) + " s" : "sin respuesta"}` + (ans.lang.startsWith("es") ? ` · ${f} muletillas` : "");
+      list.appendChild(li);
+    });
+
+    $("screen-call").hidden = true; $("screen-result").hidden = false;
+    window.scrollTo(0, 0);
+    $("t-result").focus();
+  }
+
+  $("again").addEventListener("click", () => {
+    session.questions = buildInterview(session.info, session.perfil);
+    session.answers = [];
+    speechSynthesis.speak(new SpeechSynthesisUtterance(" "));
+    runCall();
+  });
+  $("share").addEventListener("click", async (e) => {
+    const url = location.origin + location.pathname + "?utm_source=reto";
+    const text = `He sacado un ${fmt(session.score.nota)} en mi entrevista de práctica para ${session.info.name}. Lucía me ha cambiado al inglés sin avisar. ¿Superas mi nota?`;
+    if (navigator.share) { try { await navigator.share({ text, url }); } catch {} return; }
+    try { await navigator.clipboard.writeText(text + " " + url); e.target.textContent = "Copiado, pégalo donde quieras"; } catch {}
+  });
+
+  // Formularios
+  function showError(input, text) {
+    clearError(input);
+    input.setAttribute("aria-invalid", "true");
+    const p = document.createElement("p");
+    p.className = "error"; p.id = input.id + "-error"; p.textContent = text;
+    input.setAttribute("aria-describedby", p.id);
+    (input.closest(".field") || input.closest(".consent")).appendChild(p);
+  }
+  function clearError(input) {
+    input.removeAttribute("aria-invalid"); input.removeAttribute("aria-describedby");
+    const old = document.getElementById(input.id + "-error"); if (old) old.remove();
+  }
+  const emailOk = (v) => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(v.trim());
+  const form = $("form-prueba");
+  form.addEventListener("submit", async (e) => {
+    e.preventDefault();
+    const email = $("email"), consent = $("consent");
+    let ok = true;
+    if (!emailOk(email.value)) { showError(email, "Escribe un email válido, por ejemplo nombre@gmail.com."); ok = false; }
+    if (!consent.checked) { showError(consent, "Marca la casilla para que podamos avisarte."); ok = false; }
+    if (!ok) { form.querySelector('[aria-invalid="true"]').focus(); return; }
+    const btn = form.querySelector("button");
+    btn.disabled = true; btn.textContent = "Apuntándote…";
+    const data = Object.fromEntries(new FormData(form));
+    Object.assign(data, {
+      empresa: session.info.name, puesto: PROFILES[session.perfil].label,
+      nota: fmt(session.score.nota), respuestas: session.answers.length,
+      origen: "prueba", utm: location.search
+    });
+    let saved = false;
+    try {
+      const res = await fetch(FORM_ENDPOINT, { method: "POST", headers: { "Content-Type": "application/json", "Accept": "application/json" }, body: JSON.stringify(data) });
+      saved = res.ok;
+    } catch {}
+    if (!saved) { btn.disabled = false; btn.textContent = "Apuntarme a la lista"; showError(email, "No se ha podido guardar. Revisa tu conexión y vuelve a intentarlo."); return; }
+    const done = document.createElement("div");
+    done.className = "signup done"; done.setAttribute("role", "status"); done.tabIndex = -1;
+    done.innerHTML = "<h3>¡Apuntado!</h3><p>Te escribiremos a <strong></strong> en cuanto abra la versión completa.</p>";
+    done.querySelector("strong").textContent = data.email;
+    form.replaceWith(done); done.focus();
+  });
+  [$("email"), $("consent")].forEach((el) => el.addEventListener("input", () => clearError(el)));
+</script>
+</body>
+</html>
