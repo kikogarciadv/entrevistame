@@ -84,6 +84,17 @@
   .chips { display: flex; flex-wrap: wrap; gap: 6px; list-style: none; padding: 0; margin: 0 0 8px; }
   .chips li { background: var(--cobalt-tint); color: var(--cobalt-deep); border-radius: 999px; padding: 3px 10px; font-weight: 600; font-size: 0.88rem; }
 
+  /* Buscador de empresas */
+  .search { position: relative; }
+  .search svg { position: absolute; left: 14px; top: 15px; width: 20px; height: 20px; color: var(--ink-soft); pointer-events: none; }
+  .field .search input { padding-left: 44px; }
+  .results { position: absolute; z-index: 5; left: 0; right: 0; top: calc(100% + 6px); margin: 0; padding: 6px; list-style: none; background: var(--surface); border: 1.5px solid var(--line); border-radius: var(--radius-control); box-shadow: 0 18px 36px -18px rgba(18, 23, 51, 0.4); max-height: min(320px, 50vh); overflow-y: auto; overscroll-behavior: contain; -webkit-overflow-scrolling: touch; }
+  .results li { display: flex; justify-content: space-between; align-items: baseline; gap: 10px; padding: 11px 12px; min-height: 44px; border-radius: 8px; cursor: pointer; font-weight: 600; }
+  .results li small { font-weight: 400; font-size: 0.8rem; color: var(--ink-soft); white-space: nowrap; }
+  .results li[aria-selected="true"], .results li:hover { background: var(--cobalt-tint); color: var(--cobalt-deep); }
+  .results .empty { cursor: default; font-weight: 400; color: var(--ink-soft); }
+  .results .empty:hover { background: none; color: var(--ink-soft); }
+
   /* Quién entrevista y cámara */
   fieldset.field { border: 0; padding: 0; margin: 0; min-width: 0; }
   fieldset.field legend { font-weight: 600; font-size: 0.95rem; margin-bottom: 6px; padding: 0; }
@@ -206,8 +217,11 @@
     <form class="setup" id="setup" novalidate>
       <div class="field">
         <label for="empresa">Empresa</label>
-        <input id="empresa" name="empresa" list="empresas" autocomplete="organization" placeholder="Por ejemplo, Mercadona" required>
-        <datalist id="empresas"></datalist>
+        <div class="search">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.6-3.6"/></svg>
+          <input id="empresa" name="empresa" type="text" role="combobox" aria-autocomplete="list" aria-expanded="false" aria-controls="empresa-list" autocomplete="off" placeholder="Busca tu empresa, por ejemplo Mercadona" required>
+          <ul class="results" id="empresa-list" role="listbox" aria-label="Empresas" hidden></ul>
+        </div>
       </div>
       <div class="field">
         <label for="puesto">Puesto</label>
@@ -222,8 +236,8 @@
       <fieldset class="field">
         <legend>¿Quién te entrevista?</legend>
         <div class="seg">
-          <label><input type="radio" name="voz" value="f" checked><span>Lucía<small>Voz de mujer</small></span></label>
-          <label><input type="radio" name="voz" value="m"><span>Daniel<small>Voz de hombre</small></span></label>
+          <label><input type="radio" name="voz" value="f" checked><span>Lucía</span></label>
+          <label><input type="radio" name="voz" value="m"><span>Daniel</span></label>
           <label><input type="radio" name="voz" value="x"><span>Me da igual</span></label>
         </div>
         <p class="note" id="voz-note" aria-live="polite"></p>
@@ -511,15 +525,76 @@
       names.forEach((n) => { if (n.length > 1) { addFicha(norm(n), f); if (!DISPLAY.has(norm(n))) DISPLAY.set(norm(n), n); } });
     });
     Object.entries(ALIAS_EXTRA).forEach(([k, n]) => { const f = b.empresas.find((x) => x.nombre === n); if (f) addFicha(k, f); });
-    // Marcas del catálogo que pertenecen a un grupo con ficha (por ejemplo Zara → Inditex).
-    const datalist = $("empresas");
-    [...new Set(DISPLAY.values())].sort((x, y) => x.localeCompare(y, "es")).forEach((n) => opt(datalist, n, n));
+    // Una entrada por empresa o marca, sin repetir variantes como «Indra/Minsait» e «Indra / Minsait».
+    const seen = new Set();
+    NAMES = [...DISPLAY.values()].filter((n) => { const k = norm(n).replace(/[^a-z0-9]/g, ""); if (seen.has(k)) return false; seen.add(k); return true; })
+      .sort((x, y) => x.localeCompare(y, "es"));
     fillPuestos(lookup($("empresa").value));
   }).catch(() => { puesto.innerHTML = ""; opt(puesto, "", "No se han podido cargar los puestos. Recarga la página."); });
 
-  $("empresa").addEventListener("input", (e) => {
-    clearError(e.target);
-    fillPuestos(lookup(e.target.value));
+  // Buscador de empresas: lista propia en lugar del desplegable del navegador, que en móvil no deja bajar.
+  let NAMES = [];
+  const empresaInput = $("empresa"), results = $("empresa-list");
+  let matches = [], active = -1;
+  function badge(name) {
+    const f = lookup(name).fichas;
+    return f.some((x) => x.reportadas.length) ? "Preguntas de candidatos" : f.length ? "Preguntas preparadas" : "";
+  }
+  function search(q) {
+    const k = norm(q);
+    if (!k) return NAMES.filter((n) => FICHAS.has(norm(n)));
+    const starts = [], contains = [];
+    NAMES.forEach((n) => { const nn = norm(n); if (nn.startsWith(k) || nn.includes(" " + k)) starts.push(n); else if (nn.includes(k)) contains.push(n); });
+    return [...starts, ...contains];
+  }
+  function setActive(i) {
+    active = i;
+    [...results.children].forEach((li, j) => li.setAttribute("aria-selected", j === i ? "true" : "false"));
+    if (i >= 0 && results.children[i]) { empresaInput.setAttribute("aria-activedescendant", results.children[i].id); results.children[i].scrollIntoView({ block: "nearest" }); }
+    else empresaInput.removeAttribute("aria-activedescendant");
+  }
+  function openResults() {
+    if (!BANCO) return;
+    matches = search(empresaInput.value).slice(0, empresaInput.value.trim() ? 60 : 150);
+    results.innerHTML = "";
+    matches.forEach((n, i) => {
+      const li = document.createElement("li");
+      li.id = "emp-" + i; li.setAttribute("role", "option");
+      li.textContent = n;
+      const b = badge(n);
+      if (b) { const s = document.createElement("small"); s.textContent = b; li.appendChild(s); }
+      // pointerdown sin efecto para que el campo no pierda el foco; se elige en el click para no pulsar lo que hay debajo.
+      li.addEventListener("pointerdown", (e) => e.preventDefault());
+      li.addEventListener("click", () => choose(n));
+      results.appendChild(li);
+    });
+    if (!matches.length) {
+      const li = document.createElement("li"); li.className = "empty";
+      li.textContent = "No la tenemos en la lista. Puedes usarla igualmente: elige el puesto abajo.";
+      results.appendChild(li);
+    }
+    results.hidden = false; empresaInput.setAttribute("aria-expanded", "true");
+    setActive(-1);
+  }
+  function closeResults() { results.hidden = true; empresaInput.setAttribute("aria-expanded", "false"); setActive(-1); }
+  function choose(n) {
+    empresaInput.value = n;
+    closeResults();
+    clearError(empresaInput);
+    fillPuestos(lookup(n));
+  }
+  empresaInput.addEventListener("input", () => {
+    clearError(empresaInput);
+    fillPuestos(lookup(empresaInput.value));
+    openResults();
+  });
+  empresaInput.addEventListener("focus", openResults);
+  empresaInput.addEventListener("blur", () => setTimeout(closeResults, 120));
+  empresaInput.addEventListener("keydown", (e) => {
+    if (e.key === "ArrowDown") { e.preventDefault(); if (results.hidden) openResults(); setActive(Math.min(active + 1, matches.length - 1)); }
+    else if (e.key === "ArrowUp") { e.preventDefault(); setActive(Math.max(active - 1, 0)); }
+    else if (e.key === "Enter" && !results.hidden && active >= 0) { e.preventDefault(); choose(matches[active]); }
+    else if (e.key === "Escape") closeResults();
   });
 
   // Lectura del CV en el propio dispositivo (pdf.js) y extracción sencilla de experiencia, estudios y herramientas.
