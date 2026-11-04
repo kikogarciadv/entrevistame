@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Prueba Entrevístame · Entrevista de 5 minutos por voz</title>
-<meta name="description" content="Elige empresa y puesto y haz una entrevista de práctica de 5 minutos hablando en voz alta con Lucía, la entrevistadora de IA. Al final, tu nota.">
+<meta name="description" content="Elige empresa y puesto, sube tu CV si quieres y haz una entrevista de práctica hablando en voz alta con Lucía, la entrevistadora de IA. Al final, tu nota y cómo habría respondido un buen candidato.">
 <meta property="og:title" content="Entrevístame: haz una entrevista de práctica de 5 minutos">
 <meta property="og:description" content="Habla con Lucía, te cambia al inglés sin avisar y te pone nota. ¿Superas la mía?">
 <meta name="theme-color" content="#F2F4F8">
@@ -21,6 +21,7 @@
     --line: #D9DEEA;
     --cobalt: #2341E0;
     --cobalt-deep: #1A31AD;
+    --cobalt-tint: #E8ECFD;
     --rec: #E23B3B;
     --note: #FFD447;
     --radius-window: 22px;
@@ -56,6 +57,8 @@
   }
   .field input:focus, .field select:focus { border-color: var(--cobalt); outline: none; box-shadow: 0 0 0 3px rgba(35, 65, 224, 0.18); }
   .field input[aria-invalid="true"] { border-color: var(--rec); }
+  .field input[type="file"] { padding: 10px; font-size: 0.95rem; }
+  .field input[type="file"]::file-selector-button { font: inherit; font-weight: 600; border: 0; border-radius: 8px; background: var(--cobalt-tint); color: var(--cobalt-deep); padding: 8px 12px; margin-right: 10px; cursor: pointer; }
   .error { color: #B4232A; font-size: 0.9rem; margin: 6px 0 0; }
   .btn {
     font: inherit; font-weight: 700; font-size: 1.05rem; cursor: pointer; text-align: center; text-decoration: none; display: inline-block;
@@ -73,6 +76,13 @@
   .notice p:last-child { margin-bottom: 0; }
   .facts { list-style: none; padding: 0; margin: 4px 0 0; display: grid; gap: 8px; color: var(--ink-soft); font-size: 0.95rem; }
   .facts li { padding-left: 16px; border-left: 3px solid var(--cobalt); }
+
+  /* Lo leído del CV */
+  .cv-read { background: var(--surface); border: 1.5px solid var(--line); border-radius: var(--radius-control); padding: 14px 16px; margin-top: 10px; font-size: 0.95rem; }
+  .cv-read p { margin: 0 0 8px; color: var(--ink-soft); }
+  .cv-read p:last-child { margin-bottom: 0; }
+  .chips { display: flex; flex-wrap: wrap; gap: 6px; list-style: none; padding: 0; margin: 0 0 8px; }
+  .chips li { background: var(--cobalt-tint); color: var(--cobalt-deep); border-radius: 999px; padding: 3px 10px; font-weight: 600; font-size: 0.88rem; }
 
   /* Llamada */
   .call { background: var(--surface); border-radius: var(--radius-window); border: 1.5px solid var(--line); box-shadow: 0 30px 60px -30px rgba(18, 23, 51, 0.35); overflow: hidden; margin-bottom: 56px; }
@@ -131,6 +141,10 @@
   .review .src { font-size: 0.8rem; font-weight: 600; color: var(--ink-soft); margin: 0 0 8px; }
   .review .a { margin: 0 0 8px; color: var(--ink-soft); }
   .review .stats { font-size: 0.88rem; margin: 0; }
+  .review .stats.bad { color: #B4232A; font-weight: 600; }
+  .model { margin: 12px 0 0; background: var(--cobalt-tint); border-radius: 10px; padding: 12px 14px; }
+  .model strong { display: block; font-size: 0.85rem; color: var(--cobalt-deep); margin-bottom: 2px; }
+  .model p { margin: 0; font-size: 0.97rem; }
   .signup { display: grid; gap: 14px; background: var(--surface); border: 1.5px solid var(--line); border-radius: var(--radius-window); padding: 22px; }
   .consent { display: flex; gap: 10px; align-items: flex-start; font-size: 0.9rem; color: var(--ink-soft); }
   .consent input { width: 20px; height: 20px; margin: 2px 0 0; accent-color: var(--cobalt); flex: none; }
@@ -160,7 +174,7 @@
   <!-- 1. Preparación -->
   <section id="screen-setup" aria-labelledby="t-setup">
     <h1 id="t-setup">Haz una entrevista de 5 minutos.</h1>
-    <p class="lede">Lucía te hará 5 preguntas en voz alta. Contesta hablando, como en una llamada. Una de ellas llegará en inglés.</p>
+    <p class="lede">Lucía te hará 5 o 6 preguntas en voz alta. Contesta hablando, como en una llamada. Una de ellas llegará en inglés.</p>
 
     <div class="notice" id="browser-warning" hidden role="alert">
       <strong id="bw-title">Tu navegador no permite la llamada</strong>
@@ -178,10 +192,16 @@
         <label for="puesto">Puesto</label>
         <select id="puesto" name="puesto"></select>
       </div>
+      <div class="field">
+        <label for="cv">Tu CV en PDF <span class="hint">(opcional, para que te pregunte por tu experiencia)</span></label>
+        <input id="cv" name="cv" type="file" accept="application/pdf,.pdf">
+        <div class="cv-read" id="cv-read" hidden aria-live="polite"></div>
+      </div>
       <button class="btn" type="submit" id="start">Empezar la llamada</button>
       <ul class="facts">
         <li>Necesitas un sitio tranquilo y dar permiso al micrófono.</li>
-        <li>Cuando acabes una respuesta, quédate en silencio unos segundos o pulsa «He terminado».</li>
+        <li>Tómate tu tiempo. Cuando acabes una respuesta, pulsa «He terminado» o quédate en silencio unos segundos.</li>
+        <li>Tu CV se lee en tu propio dispositivo y no se envía a ningún sitio.</li>
         <li>No grabamos tu voz. La transcribe el reconocimiento de voz de tu navegador (Google en Chrome, Apple en Safari) y la nota se calcula en esta página.</li>
       </ul>
     </form>
@@ -223,7 +243,7 @@
     <div class="result">
       <div>
         <h1 id="t-result" tabindex="-1">Tu nota</h1>
-        <p class="small">Nota orientativa. Esta demo mide cómo hablas: rapidez al arrancar, muletillas, cuánto desarrollas y tu inglés. Todavía no evalúa si lo que dices es bueno; eso llega en la versión completa.</p>
+        <p class="small">Nota orientativa. Mide si respondes de verdad y con desarrollo, cuánto tardas en arrancar, tus muletillas y tu inglés. Todavía no juzga si lo que dices es acertado: para eso, compara tus respuestas con las de un buen candidato, más abajo.</p>
       </div>
 
       <div class="scorecard" id="scorecard">
@@ -235,7 +255,7 @@
 
       <div class="share-row">
         <button class="btn" type="button" id="share">Retar a un amigo</button>
-        <button class="btn ghost" type="button" id="again">Repetir la entrevista</button>
+        <button class="btn ghost" type="button" id="again">Repetir con otras preguntas</button>
       </div>
 
       <div>
@@ -279,109 +299,110 @@
 
 <footer class="wrap">
   <p>Entrevístame no tiene relación con las empresas que aparecen. Las preguntas marcadas como «basada en candidatos» resumen experiencias publicadas en Glassdoor y prensa; los procesos cambian según ciudad, fecha y puesto. El resto son preguntas de práctica para el puesto.</p>
-  <p>Privacidad: si te apuntas, guardamos tu email, tus respuestas al formulario y tu nota, no lo que dijiste. Para borrarlos escribe a <a href="mailto:kikogdv@gmail.com">kikogdv@gmail.com</a>.</p>
+  <p>Privacidad: si te apuntas, guardamos tu email, tus respuestas al formulario y tu nota, no lo que dijiste ni tu CV. Para borrarlos escribe a <a href="mailto:kikogdv@gmail.com">kikogdv@gmail.com</a>.</p>
 </footer>
 
 <script>
   const FORM_ENDPOINT = "https://formspree.io/f/meaavlzv";
 
-  // Preguntas de práctica por puesto (redactadas para la app, no son citas).
+  // Preguntas de práctica por puesto: [pregunta, cómo respondería un buen candidato]. Redactadas para la app, no son citas.
   const PROFILES = {
     ventas: { label: "Ventas y dependiente/a", qs: [
-      "¿Cómo ayudarías a una persona que no encuentra la talla que busca?",
-      "¿Qué harías si hay varios clientes esperando a la vez?",
-      "¿Qué producto o colección recomendarías ahora mismo y por qué?"],
-      en: "Tell me about a time you helped a customer who was unhappy." },
+      ["¿Cómo ayudarías a una persona que no encuentra la talla que busca?", "Muestra iniciativa: compruebas el stock en tienda y almacén, miras otras tiendas o la web y ofreces una alternativa parecida. El cliente no se va sin una opción."],
+      ["¿Qué harías si hay varios clientes esperando a la vez?", "Saludas a todos para que se sientan vistos, atiendes por orden y pides apoyo a un compañero si hace falta. Priorizas sin ignorar a nadie."],
+      ["¿Qué producto o colección recomendarías ahora mismo y por qué?", "Eliges una prenda o colección real de la tienda, dices para qué tipo de cliente es y cómo la combinarías. Demuestra que has ido a verla."]],
+      en: ["Tell me about a time you helped a customer who was unhappy.", "A short story with situation, action and result: «The customer was angry because… I listened, I offered… In the end, she left happy.» Simple sentences are fine; long silences are not."] },
     caja: { label: "Caja y supermercado", qs: [
-      "¿Cómo actuarías si un cliente dice que se le ha cobrado mal?",
-      "¿Cómo organizarías las tareas si hay cola y falta producto en una sección?",
-      "¿Qué harías si un compañero necesita ayuda en hora punta?"],
-      en: "A customer says you charged them twice. What do you do?" },
+      ["¿Cómo actuarías si un cliente dice que se le ha cobrado mal?", "Mantienes la calma, revisas el ticket con el cliente, corriges o avisas al encargado según el procedimiento y te disculpas. Nunca discutes delante de la cola."],
+      ["¿Cómo organizarías las tareas si hay cola y falta producto en una sección?", "La cola va primero porque el cliente está esperando. Avisas a un compañero o al encargado de la falta y repones en cuanto baja la cola."],
+      ["¿Qué harías si un compañero necesita ayuda en hora punta?", "Ofreces ayuda si tu puesto lo permite, sin dejar tu tarea descuidada, y pones un ejemplo real de trabajo en equipo."]],
+      en: ["A customer says you charged them twice. What do you do?", "«I would stay calm, check the receipt with the customer and, if there is a mistake, refund the extra charge following the store procedure. I would apologise and call my manager if I need help.»"] },
     almacen: { label: "Almacén y logística", qs: [
-      "¿Cómo priorizarías varios pedidos urgentes?",
-      "¿Qué comprobarías antes de mover una carga?",
-      "Cuéntame cómo mantienes la precisión cuando trabajas con objetivos de tiempo."],
-      en: "How do you stay accurate when you are working against the clock?" },
+      ["¿Cómo priorizarías varios pedidos urgentes?", "Ordenas por fecha de entrega y tipo de cliente, avisas al responsable si no llegas a todos y no sacrificas la precisión por la prisa."],
+      ["¿Qué comprobarías antes de mover una carga?", "Seguridad primero: peso y estabilidad, estado del palé y del equipo, pasillo despejado y equipos de protección. Menciona la prevención de riesgos."],
+      ["Cuéntame cómo mantienes la precisión cuando trabajas con objetivos de tiempo.", "Un método concreto, como comprobar dos veces la referencia o mantener la zona ordenada, y un dato de errores o tiempos si lo tienes."]],
+      en: ["How do you stay accurate when you are working against the clock?", "«I always double-check the reference before I send an order. In my last job this helped me keep errors very low, even on busy days.»"] },
     auditoria: { label: "Auditoría y contabilidad", qs: [
-      "¿Cómo investigarías una diferencia entre el saldo y los justificantes?",
-      "¿Qué representa el principio de devengo?",
-      "¿Cómo explicarías un asiento contable de venta?"],
-      en: "How would you explain a cash flow statement to someone without a finance background?" },
+      ["¿Cómo investigarías una diferencia entre el saldo y los justificantes?", "Comparas el mayor con los justificantes partida a partida, buscas errores de fecha de corte, duplicados o importes mal registrados, y documentas lo que encuentras."],
+      ["¿Qué representa el principio de devengo?", "Los ingresos y gastos se registran cuando ocurren, no cuando se cobran o pagan. Ejemplo: una venta de diciembre cobrada en enero es ingreso de diciembre."],
+      ["¿Cómo explicarías un asiento contable de venta?", "Cargo a Clientes (o Bancos) por el total, abono a Ventas por la base imponible y abono a IVA repercutido por el impuesto."]],
+      en: ["How would you explain a cash flow statement to someone without a finance background?", "«Profit is not the same as cash. This statement shows the real money that comes in and goes out: from the business, from investments and from loans.»"] },
     consultoria: { label: "Consultoría y estrategia", qs: [
-      "Una empresa ha perdido margen. ¿Qué datos pedirías primero?",
-      "¿Cómo estimarías el tamaño de un mercado?",
-      "Cuéntame una ocasión en la que tuviste que convencer a otra persona."],
-      en: "Tell me about a time you had to convince someone to change their mind." },
+      ["Una empresa ha perdido margen. ¿Qué datos pedirías primero?", "Separas ingresos y costes: precio y volumen por un lado, costes fijos y variables por otro. Pides varios años de datos y la comparación con la competencia antes de concluir."],
+      ["¿Cómo estimarías el tamaño de un mercado?", "De arriba abajo: población, porcentaje que compraría, frecuencia de compra y precio. Dices los supuestos en voz alta y redondeas. «No sé» no es una opción: siempre se puede estimar."],
+      ["Cuéntame una ocasión en la que tuviste que convencer a otra persona.", "Situación, qué pensaba la otra persona, qué datos o argumentos usaste y qué cambió al final. Que se note que escuchaste, no que impusiste."]],
+      en: ["Tell me about a time you had to convince someone to change their mind.", "«Last year, in a university project, my team wanted to… I disagreed because… I showed them data that… In the end, we changed the plan and got a better grade.»"] },
     software: { label: "Ingeniería de software", qs: [
-      "Háblame de un proyecto que hayas desarrollado y de una decisión técnica que tomaste.",
-      "¿Cómo investigarías una caída de rendimiento en una API?",
-      "¿Cómo probarías un cambio antes de publicarlo?"],
-      en: "Tell me about a technical decision you made in a project and why." },
+      ["Háblame de un proyecto que hayas desarrollado y de una decisión técnica que tomaste.", "Contexto breve, tu parte concreta, una decisión técnica con la alternativa que descartaste y por qué, y el resultado."],
+      ["¿Cómo investigarías una caída de rendimiento en una API?", "Medir antes de tocar: logs y métricas, aislar el endpoint lento, revisar consultas a base de datos, caché y servicios externos."],
+      ["¿Cómo probarías un cambio antes de publicarlo?", "Tests unitarios y de integración, revisión de código, entorno de pruebas y despliegue gradual con opción de volver atrás."]],
+      en: ["Tell me about a technical decision you made in a project and why.", "«In my last project I chose X instead of Y because it was simpler to maintain. The result was…»"] },
     datos: { label: "Datos y BI", qs: [
-      "¿Cómo comprobarías que los datos de un informe son fiables?",
-      "Si baja la conversión, ¿qué analizarías?",
-      "¿Cómo explicarías un hallazgo técnico a un equipo comercial?"],
-      en: "How would you explain a complex finding to a sales team?" },
+      ["¿Cómo comprobarías que los datos de un informe son fiables?", "Revisas el origen, duplicados y nulos, cuadras los totales con otra fuente y miras los valores extremos."],
+      ["Si baja la conversión, ¿qué analizarías?", "Divides el embudo por pasos, canal, dispositivo y fecha para ver dónde cae, y luego buscas cambios recientes en esa parte."],
+      ["¿Cómo explicarías un hallazgo técnico a un equipo comercial?", "Empiezas por la conclusión y su impacto en ventas, usas un gráfico sencillo y evitas la jerga."]],
+      en: ["How would you explain a complex finding to a sales team?", "«I would start with the main message and what it means for sales, show one simple chart and finish with what they should do next.»"] },
     atencion: { label: "Atención al cliente", qs: [
-      "¿Cómo responderías a una persona enfadada por un retraso?",
-      "¿Cómo atenderías varias solicitudes urgentes a la vez?",
-      "¿Cuándo escalarías un caso a otra persona?"],
-      en: "How would you handle an angry customer whose order is late?" },
+      ["¿Cómo responderías a una persona enfadada por un retraso?", "Escuchas sin interrumpir, muestras empatía, explicas qué ha pasado y das una solución o un plazo concreto. Luego haces seguimiento."],
+      ["¿Cómo atenderías varias solicitudes urgentes a la vez?", "Las ordenas por impacto y plazo, dices a cada persona cuándo la vas a atender y escalas lo que no puedes resolver tú."],
+      ["¿Cuándo escalarías un caso a otra persona?", "Cuando supera lo que puedes autorizar, hay riesgo legal o de seguridad, o el cliente lo pide tras intentarlo. Escalas con el caso bien documentado."]],
+      en: ["How would you handle an angry customer whose order is late?", "«First, I would apologise and listen. Then I would check the order and give them a clear delivery date. If possible, I would offer something to compensate.»"] },
     industrial: { label: "Mantenimiento e ingeniería industrial", qs: [
-      "¿Cómo investigarías un fallo que vuelve a ocurrir?",
-      "¿Cómo priorizarías el mantenimiento preventivo frente a la producción?",
-      "¿Qué medidas tomarías antes de intervenir en un equipo?"],
-      en: "Describe a technical problem you solved and how you found the cause." },
+      ["¿Cómo investigarías un fallo que vuelve a ocurrir?", "Análisis de causa raíz (5 porqués, diagrama de Ishikawa), revisar el historial de averías y los datos del equipo, y comprobar que la solución funciona."],
+      ["¿Cómo priorizarías el mantenimiento preventivo frente a la producción?", "Planificas el preventivo en paradas programadas y explicas con números lo que cuesta una avería frente a parar una hora."],
+      ["¿Qué medidas tomarías antes de intervenir en un equipo?", "Consignación con bloqueo y etiquetado, equipos de protección, permiso de trabajo y comprobar que no queda energía."]],
+      en: ["Describe a technical problem you solved and how you found the cause.", "«The machine stopped every week. I checked the data, found that the problem was… and after the change it did not happen again.»"] },
     marketing: { label: "Marketing y producto", qs: [
-      "¿Cómo lanzarías un producto para un público concreto?",
-      "¿Qué indicadores usarías para evaluar una campaña?",
-      "¿Qué investigarías si un competidor gana cuota?"],
-      en: "How would you measure whether a campaign worked?" },
+      ["¿Cómo lanzarías un producto para un público concreto?", "Defines público, mensaje y el canal donde está ese público. Lanzas una prueba pequeña y mides antes de invertir más."],
+      ["¿Qué indicadores usarías para evaluar una campaña?", "Depende del objetivo: alcance, coste por cliente, conversión y retorno. El objetivo se fija antes de lanzar, no después."],
+      ["¿Qué investigarías si un competidor gana cuota?", "Su precio, producto, canales y campañas, y hablas con clientes que se han ido para saber por qué."]],
+      en: ["How would you measure whether a campaign worked?", "«It depends on the goal. If the goal was sales, I would look at conversion and the cost per new customer, and compare them with the target we set before.»"] },
     admin: { label: "Administración y RR. HH.", qs: [
-      "¿Cómo organizarías tareas de varias personas con plazos que coinciden?",
-      "¿Cómo manejarías información confidencial?",
-      "¿Qué tareas de Excel has automatizado o mejorado?"],
-      en: "How do you organise your work when several deadlines arrive at once?" },
+      ["¿Cómo organizarías tareas de varias personas con plazos que coinciden?", "Una lista única con prioridades y fechas, hablas con los implicados si hay choques y avisas pronto si algo se va a retrasar."],
+      ["¿Cómo manejarías información confidencial?", "Acceso solo a quien lo necesita, no se comenta fuera, ordenador bloqueado y cumplir la protección de datos."],
+      ["¿Qué tareas de Excel has automatizado o mejorado?", "Un ejemplo concreto (tablas dinámicas, BUSCARX, macros), cuánto tiempo ahorraste y para quién."]],
+      en: ["How do you organise your work when several deadlines arrive at once?", "«I make one list, I prioritise by deadline and impact, and I tell people early if something is going to be late.»"] },
     hosteleria: { label: "Hostelería y tripulación", qs: [
-      "¿Cómo resolverías una queja sin dejar de dar buen servicio?",
-      "¿Cómo priorizarías la seguridad y la atención en una situación tensa?",
-      "¿Cómo describirías tu experiencia atendiendo al público?"],
-      en: "Tell me about a time you dealt with a difficult guest." }
+      ["¿Cómo resolverías una queja sin dejar de dar buen servicio?", "Escuchas, te disculpas, lo solucionas rápido (cambiar el plato, invitar a algo) y sigues atendiendo al resto."],
+      ["¿Cómo priorizarías la seguridad y la atención en una situación tensa?", "La seguridad va siempre primero: sigues el protocolo, mantienes la calma y comunicas con claridad a clientes y compañeros."],
+      ["¿Cómo describirías tu experiencia atendiendo al público?", "Un ejemplo concreto de trato con público y qué aprendiste. Si no tienes experiencia en hostelería, usa voluntariado o atención al cliente."]],
+      en: ["Tell me about a time you dealt with a difficult guest.", "«A guest was unhappy because his food was late. I apologised, I spoke with the kitchen and offered him a drink. In the end, he left a good review.»"] }
   };
 
   // Empresas con temas que aparecen en experiencias de candidatos (resumidos, no citas).
+  const STAR = "Usa una historia con situación, qué hiciste tú y qué resultado conseguiste, con un dato concreto si puedes.";
   const REPORTED = {
     "Inditex": { perfil: "ventas", qs: [
-      "¿Qué sabes de nuestras marcas y en cuál te ves trabajando?",
-      "¿Qué aportarías tú al equipo de tienda?",
-      "¿Qué disponibilidad de horario tienes?"] },
+      ["¿Qué sabes de nuestras marcas y en cuál te ves trabajando?", "Nombra varias marcas del grupo y di en cuál te ves y por qué (público, estilo). Mejor si has visitado la tienda esa semana."],
+      ["¿Qué aportarías tú al equipo de tienda?", "Una cualidad útil en tienda (orden, trato al cliente, ritmo) con un ejemplo real que la demuestre."],
+      ["¿Qué disponibilidad de horario tienes?", "Claro y honesto: horarios, fines de semana y rebajas. La flexibilidad suma mucho en tienda."]] },
     "Mercadona": { perfil: "caja", qs: [
-      "Cuéntame tu experiencia y qué has estudiado.",
-      "¿Te ves trabajando mucho tiempo en Mercadona?",
-      "¿Qué disponibilidad tienes?"] },
+      ["Cuéntame tu experiencia y qué has estudiado.", "Resúmelo en 30 segundos y relaciónalo con atención al cliente, ritmo de trabajo y equipo."],
+      ["¿Te ves trabajando mucho tiempo en Mercadona?", "Mercadona valora la permanencia: habla de crecer dentro, de su formación y promoción interna, y de buscar estabilidad."],
+      ["¿Qué disponibilidad tienes?", "Claro y honesto con turnos, fines de semana y festivos. La flexibilidad suma."]] },
     "KPMG": { perfil: "consultoria", qs: [
-      "Cálculo rápido: una empresa factura 4 millones de euros con un margen del 15 %. ¿Cuánto gana?",
-      "¿Por qué consultoría y por qué KPMG?"] },
+      ["Cálculo rápido: una empresa factura 4 millones de euros con un margen del 15 %. ¿Cuánto gana?", "600.000 €. Dilo paso a paso en voz alta: el 10 % son 400.000 y el 5 % son 200.000."],
+      ["¿Por qué consultoría y por qué KPMG?", "Consultoría: aprender rápido en muchos sectores y trabajar con clientes. KPMG: algo concreto (un área, un proyecto, su formación), no «es una gran empresa»."]] },
     "PwC": { perfil: "auditoria", qs: [
-      "¿Qué diferencia hay entre beneficio y flujo de caja?",
-      "¿Por qué quieres empezar tu carrera en PwC?"] },
+      ["¿Qué diferencia hay entre beneficio y flujo de caja?", "El beneficio incluye ventas no cobradas y gastos no pagados; la caja es el dinero real que entra y sale. Una empresa con beneficios puede quedarse sin caja."],
+      ["¿Por qué quieres empezar tu carrera en PwC?", "Algo concreto de la firma (formación, sector, oficina) unido a tu plan de carrera en auditoría."]] },
     "Deloitte": { perfil: "consultoria", qs: [
-      "Cuéntame una experiencia en la que tuviste que resolver un problema complicado.",
-      "¿Por qué Deloitte y por qué este programa?"] },
+      ["Cuéntame una experiencia en la que tuviste que resolver un problema complicado.", STAR],
+      ["¿Por qué Deloitte y por qué este programa?", "Algo concreto del programa (rotaciones, formación, área) y cómo encaja con lo que quieres aprender."]] },
     "EY": { perfil: "consultoria", qs: [
-      "Háblame de una vez que tuviste que negociar algo.",
-      "¿Qué te motiva de EY frente a otras firmas?"] },
+      ["Háblame de una vez que tuviste que negociar algo.", STAR + " Muestra que buscaste un acuerdo bueno para las dos partes."],
+      ["¿Qué te motiva de EY frente a otras firmas?", "Una diferencia concreta de EY (un área, su cultura, un proyecto conocido), no algo que valga para cualquier firma."]] },
     "Indra": { perfil: "software", qs: [
-      "¿Con qué tecnologías has trabajado y hasta qué nivel las dominas?",
-      "¿Te resulta cómodo trabajar con documentación técnica en inglés?"] },
+      ["¿Con qué tecnologías has trabajado y hasta qué nivel las dominas?", "Honestidad: qué has usado en proyectos reales y qué solo conoces. Un ejemplo vale más que una lista."],
+      ["¿Te resulta cómodo trabajar con documentación técnica en inglés?", "Sí, con un ejemplo de documentación o manuales que hayas leído o escrito en inglés."]] },
     "Capgemini": { perfil: "software", qs: [
-      "Háblame de los proyectos en los que has trabajado.",
-      "¿Qué papel tuviste tú en el último proyecto?"] },
+      ["Háblame de los proyectos en los que has trabajado.", "Uno o dos proyectos: el problema, tu papel, la tecnología y el resultado."],
+      ["¿Qué papel tuviste tú en el último proyecto?", "Di lo que hiciste tú, no el equipo, y qué decisión fue tuya."]] },
     "NTT DATA": { perfil: "software", qs: [
-      "Cuéntame tu trayectoria y las tecnologías que usas en el día a día."] },
+      ["Cuéntame tu trayectoria y las tecnologías que usas en el día a día.", "Recorrido breve en orden, la tecnología de cada etapa y por qué te interesa este puesto."]] },
     "Sacyr": { perfil: "industrial", qs: [
-      "¿Qué proyectos de Sacyr conoces?",
-      "Cuéntame un problema técnico que hayas resuelto."] }
+      ["¿Qué proyectos de Sacyr conoces?", "Cita uno o dos proyectos reales de Sacyr (búscalos antes en su web) y qué te interesa de ellos."],
+      ["Cuéntame un problema técnico que hayas resuelto.", STAR]] }
   };
   const ALIASES = {
     "Zara": "Inditex", "Pull&Bear": "Inditex", "Massimo Dutti": "Inditex", "Bershka": "Inditex", "Stradivarius": "Inditex",
@@ -430,10 +451,80 @@
     if (info.perfil && !puestoTouched) puesto.value = info.perfil;
   });
 
+  // Lectura del CV en el propio dispositivo (pdf.js) y extracción sencilla de experiencia, estudios y herramientas.
+  let cv = null;
+  const PDFJS = "https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/";
+  function loadPdfJs() {
+    if (window.pdfjsLib) return Promise.resolve(window.pdfjsLib);
+    return new Promise((resolve, reject) => {
+      const s = document.createElement("script");
+      s.src = PDFJS + "pdf.min.js";
+      s.onload = () => { window.pdfjsLib.GlobalWorkerOptions.workerSrc = PDFJS + "pdf.worker.min.js"; resolve(window.pdfjsLib); };
+      s.onerror = reject;
+      document.head.appendChild(s);
+    });
+  }
+  async function pdfText(file) {
+    const lib = await loadPdfJs();
+    const pdf = await lib.getDocument({ data: await file.arrayBuffer() }).promise;
+    let out = "";
+    for (let p = 1; p <= Math.min(pdf.numPages, 4); p++) {
+      const content = await (await pdf.getPage(p)).getTextContent();
+      content.items.forEach((it) => { out += it.str + (it.hasEOL ? "\n" : " "); });
+      out += "\n";
+    }
+    return out;
+  }
+  const SKILLS = ["Excel", "Python", "SQL", "Power BI", "Tableau", "SAP", "AutoCAD", "SolidWorks", "CATIA", "Siemens NX", "NX", "MATLAB", "Simulink", "Rhino", "Maxsurf", "Ansys", "Revit", "Java", "JavaScript", "TypeScript", "React", "Angular", "Node", "C\\+\\+", "C#", "R", "Git", "Docker", "AWS", "Azure", "Photoshop", "Illustrator", "Figma", "Canva", "Salesforce", "HubSpot", "Google Analytics", "Jira", "Scrum", "Agile", "Lean", "Six Sigma", "PowerPoint", "Word", "Access", "VBA", "Arduino", "PLC", "LabVIEW"];
+  const EDU_RE = /(grado|m[aá]ster|master|ingenier[ií]a|licenciatura|doble grado|ciclo formativo|ciclo superior|ciclo medio|formaci[oó]n profesional|\bfp\b|bachillerato|bachelor|degree|doctorado|mba)/i;
+  const JOB_RE = /(pr[aá]cticas|becari[oa]|intern(ship)?|analista|consultor[a]?|ingenier[oa]\b|dependient[ea]|camarer[oa]|t[eé]cnic[oa]|developer|desarrollador[a]?|asistente|responsable|coordinador[a]?|auxiliar|monitor[a]?|profesor[a]?|vendedor[a]?|cajer[oa]|reponedor[a]?|mozo|jefe|encargad[oa]|teleoperador[a]?|recepcionista|administrativ[oa]|comercial|operari[oa]|dise[nñ]ador[a]?|trainee|junior)/i;
+  const tidy = (l) => l.replace(/\s+/g, " ").replace(/^[\s•·\-–—|*]+|[\s•·\-–—|*,;:]+$/g, "").trim();
+  function parseCv(text) {
+    const lines = text.split(/\n+/).map(tidy).filter((l) => l.length >= 8 && l.length <= 90 && !/@|https?:|www\.|\+?\d{3}[\s-]?\d{3}/.test(l));
+    const edu = [], jobs = [];
+    lines.forEach((l) => {
+      if (EDU_RE.test(l) && edu.length < 2 && !edu.includes(l)) edu.push(l);
+      else if (JOB_RE.test(l) && jobs.length < 3 && !jobs.includes(l)) jobs.push(l);
+    });
+    const skills = [];
+    SKILLS.forEach((s) => {
+      const re = new RegExp("(^|[^A-Za-zÁÉÍÓÚáéíóúñ])" + s + "($|[^A-Za-zÁÉÍÓÚáéíóúñ+#])", s.length <= 3 ? "" : "i");
+      const name = s.replace(/\\/g, "");
+      if (re.test(text) && !skills.some((x) => x.includes(name) || name.includes(x))) skills.push(name);
+    });
+    const en = text.match(/(ingl[eé]s|english)[^\n]{0,30}?\b(A1|A2|B1|B2|C1|C2|nativo|biling[uü]e|avanzado|intermedio|b[aá]sico|first|advanced|proficiency|toefl|ielts)\b/i);
+    return { edu, jobs, skills: skills.slice(0, 6), english: en ? en[2] : null };
+  }
+  function renderCv(box, data) {
+    box.hidden = false; box.innerHTML = "";
+    const found = data.jobs.length + data.edu.length + data.skills.length;
+    const p = document.createElement("p");
+    p.textContent = found ? "Esto es lo que Lucía ha leído de tu CV y usará en la entrevista:" : "No hemos sacado nada claro de tu CV (puede ser una imagen escaneada). Haremos la entrevista estándar.";
+    box.appendChild(p);
+    if (!found) return;
+    const ul = document.createElement("ul"); ul.className = "chips";
+    [...data.jobs, ...data.edu, ...data.skills].concat(data.english ? ["Inglés " + data.english] : []).forEach((t) => {
+      const li = document.createElement("li"); li.textContent = t; ul.appendChild(li);
+    });
+    box.appendChild(ul);
+  }
+  $("cv").addEventListener("change", async (e) => {
+    const file = e.target.files[0];
+    const box = $("cv-read");
+    cv = null;
+    if (!file) { box.hidden = true; return; }
+    box.hidden = false; box.textContent = "Leyendo tu CV…";
+    $("start").disabled = true;
+    try { cv = parseCv(await pdfText(file)); renderCv(box, cv); }
+    catch { box.textContent = "No hemos podido leer ese PDF. Puedes hacer la entrevista sin CV."; }
+    $("start").disabled = !supported;
+  });
+
   // Compatibilidad del navegador
   const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
   const inApp = /TikTok|musical_ly|Bytedance|Instagram|FBAN|FBAV|Twitter/i.test(navigator.userAgent);
-  if (inApp || !SR || !window.speechSynthesis) {
+  const supported = !inApp && !!SR && !!window.speechSynthesis;
+  if (!supported) {
     $("browser-warning").hidden = false;
     if (inApp) {
       $("bw-title").textContent = "Ábrela en tu navegador";
@@ -472,9 +563,10 @@
     });
   }
 
-  // Escucha una respuesta. Termina tras 4 s de silencio, con el botón o a los 2 minutos.
+  // Escucha una respuesta. Termina con el botón, tras un silencio largo (más en inglés, porque se piensa más) o a los 3 minutos.
   let current = null;
   function listen(lang) {
+    const silence = lang.startsWith("en") ? 9000 : 6500;
     return new Promise((resolve, reject) => {
       const rec = new SR();
       rec.lang = lang; rec.continuous = true; rec.interimResults = true;
@@ -503,12 +595,16 @@
       rec.onerror = (e) => {
         if (e.error === "not-allowed" || e.error === "service-not-allowed") { ended = true; clearInterval(tick); reject(new Error("mic")); }
       };
-      rec.onend = () => { if (!ended) { try { rec.start(); } catch { finish(); } } };
+      // El navegador corta el reconocimiento tras una pausa: guardamos lo que había a medias y seguimos escuchando.
+      rec.onend = () => {
+        if (interim) { finalText += " " + interim; interim = ""; }
+        if (!ended) { try { rec.start(); } catch { finish(); } }
+      };
       const tick = setInterval(() => {
         const now = performance.now();
-        if (last && now - last > 4000) finish();
+        if (last && now - last > silence) finish();
         else if (!first && now - t0 > 30000) finish();
-        else if (now - t0 > 120000) finish();
+        else if (now - t0 > 180000) finish();
       }, 300);
       current = { finish };
       rec.start();
@@ -532,21 +628,47 @@
     }, 1000);
   }
   const shuffle = (a) => a.map((x) => [Math.random(), x]).sort((p, q) => p[0] - q[0]).map((p) => p[1]);
+  const pick = (a) => a[Math.floor(Math.random() * a.length)];
 
-  function buildInterview(info, perfilKey) {
+  function buildInterview(info, perfilKey, cvData) {
     const p = PROFILES[perfilKey];
     const pq = shuffle(p.qs);
     const rq = info.reported ? shuffle(info.reported.qs) : [];
     const SRC_R = "Basada en experiencias de candidatos";
     const SRC_P = "Pregunta de práctica para el puesto";
     const SRC_G = "Pregunta general";
-    return [
-      { lang: "es-ES", src: SRC_G, text: `Hola, soy Lucía y hoy te entrevisto para ${info.name}. Para empezar, preséntate en un minuto.` },
-      rq[0] ? { lang: "es-ES", src: SRC_R, text: rq[0] } : { lang: "es-ES", src: SRC_G, text: `¿Por qué quieres trabajar en ${info.name} y no en otra empresa del sector?` },
-      { lang: "es-ES", src: SRC_P, text: pq[0] },
-      rq[1] ? { lang: "es-ES", src: SRC_R, text: rq[1] } : { lang: "es-ES", src: SRC_P, text: pq[1] },
-      { lang: "en-US", src: "Cambio al inglés sin avisar", text: "Okay, let's switch to English for a moment. " + p.en }
-    ];
+    const SRC_CV = "Sacada de tu CV";
+    const q = (text, model, src, lang = "es-ES") => ({ text, model, src, lang });
+    const hasCv = cvData && (cvData.jobs.length || cvData.edu.length || cvData.skills.length);
+
+    const intro = hasCv
+      ? q(`Hola, soy Lucía y hoy te entrevisto para ${info.name}. He leído tu CV. Para empezar, preséntate en un minuto y cuéntame por qué encajas en este puesto.`,
+          "Un minuto con estructura: quién eres hoy, una o dos experiencias de tu CV con un dato concreto y por qué este puesto es el siguiente paso lógico. No repitas el CV línea a línea.", SRC_G)
+      : q(`Hola, soy Lucía y hoy te entrevisto para ${info.name}. Para empezar, preséntate en un minuto.`,
+          "Un minuto con estructura: quién eres hoy (estudios o puesto), una o dos experiencias con un dato concreto y por qué este puesto encaja contigo. No repitas el CV línea a línea.", SRC_G);
+    const company = rq[0] ? q(rq[0][0], rq[0][1], SRC_R)
+      : q(`¿Por qué quieres trabajar en ${info.name} y no en otra empresa del sector?`,
+          `Nombra algo concreto de ${info.name}: un proyecto, un cliente, un área o una noticia reciente, y únelo a lo que quieres aprender o aportar. «Es una empresa grande e innovadora» vale para cualquiera y no convence.`, SRC_G);
+
+    const list = [intro, company];
+    if (hasCv && cvData.jobs.length) {
+      list.push(q(`En tu CV aparece «${pick(cvData.jobs)}». Cuéntame qué hacías allí y un resultado concreto que consiguieras.`,
+        "Situación, tu tarea, lo que hiciste tú y el resultado con un número («reduje el tiempo de 5 a 3 días»). Termina uniéndolo con lo que harías en este puesto.", SRC_CV));
+    }
+    list.push(q(pq[0][0], pq[0][1], SRC_P));
+    if (hasCv && cvData.skills.length) {
+      const s = pick(cvData.skills);
+      list.push(q(`Mencionas ${s} en tu CV. ¿Dónde lo has usado y qué nivel tienes de verdad?`,
+        `Un proyecto concreto donde usaste ${s}, qué hiciste exactamente y un nivel honesto. Si exageras, en la siguiente fase te lo preguntarán a fondo.`, SRC_CV));
+    } else if (hasCv && cvData.edu.length) {
+      list.push(q(`Veo en tu CV «${pick(cvData.edu)}». ¿Qué de tu formación te sirve para este puesto en ${info.name}?`,
+        "Elige una o dos asignaturas, proyectos o habilidades concretas y explica cómo las usarías en el día a día del puesto.", SRC_CV));
+    } else {
+      list.push(rq[1] ? q(rq[1][0], rq[1][1], SRC_R) : q(pq[1][0], pq[1][1], SRC_P));
+    }
+    const lead = hasCv && cvData.english ? `Your CV says your English level is ${cvData.english}, so let's continue in English. ` : "Okay, let's switch to English for a moment. ";
+    list.push(q(lead + p.en[0], p.en[1], "Cambio al inglés sin avisar", "en-US"));
+    return list;
   }
 
   let session = null;
@@ -567,7 +689,7 @@
       return;
     }
     const info = lookup(empresaInput.value);
-    session = { info, perfil: puesto.value, questions: buildInterview(info, puesto.value), answers: [] };
+    session = { info, perfil: puesto.value, questions: buildInterview(info, puesto.value, cv), answers: [] };
     runCall();
   });
 
@@ -591,11 +713,10 @@
       await speak(q.text, q.lang);
       if (hungUp) break;
       stage.dataset.speaking = "me";
-      caption("Lucía", q.lang, q.text);
-      $("cap-who").textContent = "Tu turno";
+      caption("Tu turno", q.lang, q.text);
       try {
         const a = await listen(q.lang);
-        session.answers.push({ q: q.text, lang: q.lang, src: q.src, text: a.text, latency: a.latency, duration: a.duration });
+        session.answers.push({ q: q.text, model: q.model, lang: q.lang, src: q.src, text: a.text, latency: a.latency, duration: a.duration });
       } catch {
         hungUp = true;
         endCall();
@@ -622,47 +743,64 @@
     if (current) current.finish();
   });
 
-  // Nota
-  const FILLERS = ["o sea", "osea", "en plan", "bueno", "pues", "vale", "tipo", "digamos", "sabes", "eh", "ehm", "em", "mmm"];
+  // Nota: exigente a propósito. Una respuesta vacía o un «no sé» cuenta como cero.
+  const FILLERS = ["o sea", "osea", "en plan", "bueno", "pues", "vale", "tipo", "digamos", "sabes", "eh", "ehm", "em", "mmm", "nada"];
+  const NON_ANSWER = /\b(no s[eé]|ni idea|no lo s[eé]|no tengo ni idea|paso|no sabr[ií]a|no puedo responder|i don'?t know|no idea)\b/i;
   const clamp = (x, a, b) => Math.max(a, Math.min(b, x));
   const fmt = (x) => (Math.round(x * 10) / 10).toLocaleString("es-ES");
   const wordsOf = (t) => (t ? t.split(/\s+/).filter(Boolean).length : 0);
   function countFillers(text) {
     const t = " " + norm(text).replace(/[^a-zñ ]/g, " ") + " ";
     const counts = {};
-    FILLERS.forEach((f) => { const m = t.split(" " + f + " ").length - 1; if (m) counts[f] = m; });
+    FILLERS.forEach((f) => { const m = t.split(" " + f + " ").length - 1; if (m) counts[f === "osea" ? "o sea" : f] = (counts[f === "osea" ? "o sea" : f] || 0) + m; });
     return counts;
+  }
+  const isNonAnswer = (t) => wordsOf(t) === 0 || (NON_ANSWER.test(t) && wordsOf(t) < 15);
+  function answerScore(a) {
+    const w = wordsOf(a.text);
+    if (isNonAnswer(a.text)) return 0;
+    if (a.lang.startsWith("en")) return w < 10 ? 1.5 : w < 20 ? 3 : w < 35 ? 4.5 : w < 60 ? 6.5 : 8;
+    return w < 10 ? 1 : w < 20 ? 3 : w < 40 ? 5 : w < 70 ? 7 : w <= 200 ? 8.5 : 7;
   }
   function score(answers) {
     const es = answers.filter((a) => a.lang.startsWith("es"));
     const en = answers.find((a) => a.lang.startsWith("en"));
     const fill = {};
-    es.forEach((a) => Object.entries(countFillers(a.text)).forEach(([k, v]) => { fill[k === "osea" ? "o sea" : k] = (fill[k === "osea" ? "o sea" : k] || 0) + v; }));
+    es.forEach((a) => Object.entries(countFillers(a.text)).forEach(([k, v]) => { fill[k] = (fill[k] || 0) + v; }));
     const esWords = es.reduce((s, a) => s + wordsOf(a.text), 0);
     const fillTotal = Object.values(fill).reduce((s, v) => s + v, 0);
     const per100 = esWords ? (fillTotal / esWords) * 100 : 0;
-    const claridad = esWords ? clamp(10 - per100 * 0.7, 2, 10) : 2;
-    const devPart = (w) => (w < 15 ? 3 : w < 35 ? 5.5 : w < 60 ? 7.5 : w <= 220 ? 9 : 7);
-    const desarrollo = es.length ? es.reduce((s, a) => s + devPart(wordsOf(a.text)), 0) / es.length : 2;
-    const latPart = (l) => (l == null ? 2 : l <= 1.5 ? 9.5 : l <= 3 ? 8 : l <= 5 ? 6 : l <= 8 ? 4.5 : 3);
-    const seguridad = answers.length ? answers.reduce((s, a) => s + latPart(a.latency), 0) / answers.length : 2;
-    const enW = en ? wordsOf(en.text) : 0;
-    const ingles = !en ? null : enW === 0 ? 1 : enW < 10 ? 4 : enW < 25 ? 6 : enW < 50 ? 8 : 9;
-    const parts = [desarrollo, seguridad, claridad].concat(ingles == null ? [] : [ingles]);
-    const nota = parts.reduce((s, x) => s + x, 0) / parts.length;
+    const desarrollo = es.length ? es.reduce((s, a) => s + answerScore(a), 0) / es.length : 0;
+    const claridad = esWords < 30 ? Math.min(4, desarrollo) : clamp(10 - per100, 2, 10);
+    const latPart = (l) => (l == null ? 0 : l <= 1.5 ? 9 : l <= 3 ? 7 : l <= 5 ? 5 : 3);
+    const seguridad = answers.length ? answers.reduce((s, a) => s + latPart(a.latency), 0) / answers.length : 0;
+    const ingles = en ? answerScore(en) : null;
+    const misses = answers.filter((a) => isNonAnswer(a.text)).length;
+    const weights = ingles == null ? [[desarrollo, 0.55], [seguridad, 0.25], [claridad, 0.2]] : [[desarrollo, 0.4], [ingles, 0.25], [seguridad, 0.2], [claridad, 0.15]];
+    // Si cuelgas antes de tiempo, las preguntas que faltan cuentan como no respondidas.
+    const coverage = answers.length / session.questions.length;
+    const nota = clamp(weights.reduce((s, [v, k]) => s + v * k, 0) * coverage - misses * 0.75, 0, 10);
     const lats = answers.filter((a) => a.latency != null).map((a) => a.latency);
     const avgLat = lats.length ? lats.reduce((s, x) => s + x, 0) / lats.length : null;
     const top = Object.entries(fill).sort((a, b) => b[1] - a[1])[0] || null;
-    return { nota, desarrollo, seguridad, claridad, ingles, enW, avgLat, top, fillTotal, esWords, esCount: es.length };
+    const shortOnes = es.filter((a) => !isNonAnswer(a.text) && wordsOf(a.text) < 20).length;
+    return { nota, desarrollo, seguridad, claridad, ingles, avgLat, top, fillTotal, esWords, misses, shortOnes, enW: en ? wordsOf(en.text) : 0 };
   }
   function roastFor(s) {
     if (s.esWords === 0) return "Lucía ha hablado sola. La próxima vez, contesta tú también.";
+    if (s.misses >= 1) return s.misses === 1 ? "Un «no sé» en una entrevista es un cero. Siempre se puede razonar en voz alta." : `${s.misses} preguntas sin responder. Lucía se ha quedado esperando.`;
+    if (s.ingles != null && s.ingles <= 4.5) return "Al pasar al inglés, poco más que un saludo. Ahí se decide más de una entrevista.";
+    if (s.shortOnes >= 2) return "Respuestas de telegrama. Cuenta qué hiciste, cómo y qué conseguiste.";
     if (s.top && s.top[1] >= 4) return `Dijiste «${s.top[0]}» ${s.top[1]} veces. Lucía ha dejado de contarlas.`;
-    if (s.ingles != null && s.ingles <= 4) return "Al pasar al inglés, silencio. Lucía sigue esperando.";
-    if (s.desarrollo < 5) return "Respuestas de telegrama. Cuéntale algo más que lo justo.";
     if (s.avgLat != null && s.avgLat > 5) return `Tardaste ${fmt(s.avgLat)} segundos de media en arrancar. Ponle ritmo.`;
     if (s.nota >= 8) return "Poco que reprochar. Sospechoso.";
     return s.top ? `Tu muletilla favorita: «${s.top[0]}». Vigílala.` : "Ni una muletilla. Así sí.";
+  }
+  function verdict(a) {
+    const w = wordsOf(a.text);
+    if (isNonAnswer(a.text)) return { text: "Sin respuesta: cuenta como cero.", bad: true };
+    if (w < 20) return { text: `Muy corta (${w} palabras). Desarrolla más.`, bad: true };
+    return { text: `${w} palabras`, bad: false };
   }
 
   function showResult() {
@@ -674,7 +812,7 @@
     $("sc-grade").textContent = fmt(s.nota);
     const rows = [["Desarrollo", fmt(s.desarrollo)], ["Rapidez al responder", fmt(s.seguridad)], ["Claridad (muletillas)", fmt(s.claridad)]];
     if (s.ingles != null) rows.push(["Inglés", fmt(s.ingles)]);
-    if (s.avgLat != null) rows.push(["Tiempo medio en arrancar", fmt(s.avgLat) + " s"]);
+    rows.push(["Sin responder", String(s.misses + (session.questions.length - a.length))]);
     rows.push(["Muletillas", String(s.fillTotal)]);
     $("sc-list").innerHTML = "";
     rows.forEach(([k, v]) => { const dt = document.createElement("dt"); dt.textContent = k; const dd = document.createElement("dd"); dd.textContent = v; $("sc-list").append(dt, dd); });
@@ -683,13 +821,23 @@
     const list = $("review"); list.innerHTML = "";
     a.forEach((ans) => {
       const li = document.createElement("li");
-      const w = wordsOf(ans.text);
       const f = Object.values(countFillers(ans.text)).reduce((x, y) => x + y, 0);
-      li.innerHTML = '<p class="q"></p><p class="src"></p><p class="a"></p><p class="stats"></p>';
+      const v = verdict(ans);
+      li.innerHTML = '<p class="q"></p><p class="src"></p><p class="a"></p><p class="stats"></p><div class="model"><strong>Cómo respondería un buen candidato</strong><p></p></div>';
       li.querySelector(".q").textContent = ans.q;
       li.querySelector(".src").textContent = ans.src;
       li.querySelector(".a").textContent = ans.text ? "«" + ans.text + "»" : "No te hemos oído responder.";
-      li.querySelector(".stats").textContent = `${w} palabras · ${ans.latency != null ? "empezaste a los " + fmt(ans.latency) + " s" : "sin respuesta"}` + (ans.lang.startsWith("es") ? ` · ${f} muletillas` : "");
+      const st = li.querySelector(".stats");
+      st.textContent = v.text + (ans.latency != null ? ` · empezaste a los ${fmt(ans.latency)} s` : "") + (ans.lang.startsWith("es") && ans.text ? ` · ${f} muletillas` : "");
+      st.classList.toggle("bad", v.bad);
+      li.querySelector(".model p").textContent = ans.model;
+      list.appendChild(li);
+    });
+    session.questions.slice(a.length).forEach((q) => {
+      const li = document.createElement("li");
+      li.innerHTML = '<p class="q"></p><p class="stats bad">No llegaste a esta pregunta.</p><div class="model"><strong>Cómo respondería un buen candidato</strong><p></p></div>';
+      li.querySelector(".q").textContent = q.text;
+      li.querySelector(".model p").textContent = q.model;
       list.appendChild(li);
     });
 
@@ -699,7 +847,7 @@
   }
 
   $("again").addEventListener("click", () => {
-    session.questions = buildInterview(session.info, session.perfil);
+    session.questions = buildInterview(session.info, session.perfil, cv);
     session.answers = [];
     speechSynthesis.speak(new SpeechSynthesisUtterance(" "));
     runCall();
@@ -738,7 +886,7 @@
     const data = Object.fromEntries(new FormData(form));
     Object.assign(data, {
       empresa: session.info.name, puesto: PROFILES[session.perfil].label,
-      nota: fmt(session.score.nota), respuestas: session.answers.length,
+      nota: fmt(session.score.nota), respuestas: session.answers.length, con_cv: cv ? "sí" : "no",
       origen: "prueba", utm: location.search
     });
     let saved = false;
