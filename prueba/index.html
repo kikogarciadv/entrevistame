@@ -201,8 +201,8 @@
       <ul class="facts">
         <li>Necesitas un sitio tranquilo y dar permiso al micrófono.</li>
         <li>Tómate tu tiempo. Cuando acabes una respuesta, pulsa «He terminado» o quédate en silencio unos segundos.</li>
-        <li>Tu CV se lee en tu propio dispositivo y no se envía a ningún sitio.</li>
-        <li>No grabamos tu voz. La transcribe el reconocimiento de voz de tu navegador (Google en Chrome, Apple en Safari) y la nota se calcula en esta página.</li>
+        <li id="fact-cv">Tu CV se lee en tu propio dispositivo y no se envía a ningún sitio.</li>
+        <li id="fact-voz">No grabamos tu voz. La transcribe el reconocimiento de voz de tu navegador (Google en Chrome, Apple en Safari) y la nota se calcula en esta página.</li>
       </ul>
     </form>
   </section>
@@ -243,8 +243,9 @@
     <div class="result">
       <div>
         <h1 id="t-result" tabindex="-1">Tu nota</h1>
-        <p class="small">Nota orientativa. Mide si respondes de verdad y con desarrollo, cuánto tardas en arrancar, tus muletillas y tu inglés. Todavía no juzga si lo que dices es acertado: para eso, compara tus respuestas con las de un buen candidato, más abajo.</p>
+        <p class="small" id="result-note">Nota orientativa. Mide si respondes de verdad y con desarrollo, cuánto tardas en arrancar, tus muletillas y tu inglés. Todavía no juzga si lo que dices es acertado: para eso, compara tus respuestas con las de un buen candidato, más abajo.</p>
       </div>
+      <div class="cv-read" id="ai-summary" hidden></div>
 
       <div class="scorecard" id="scorecard">
         <div class="sc-head"><span id="sc-who"></span><span>Ensayo 1</span></div>
@@ -261,6 +262,11 @@
       <div>
         <h2>Pregunta a pregunta</h2>
         <ol class="review" id="review"></ol>
+      </div>
+
+      <div id="en-fixes" hidden>
+        <h2>Tu inglés, corregido</h2>
+        <ul class="review" id="en-list"></ul>
       </div>
 
       <form class="signup" id="form-prueba" novalidate>
@@ -304,6 +310,21 @@
 
 <script>
   const FORM_ENDPOINT = "https://formspree.io/f/meaavlzv";
+  // URL del Worker de Cloudflare con Claude (por ejemplo https://entrevistame.tu-usuario.workers.dev).
+  // Vacía: la prueba funciona sin IA, con preguntas del banco y nota calculada en la página.
+  const AI_ENDPOINT = "";
+
+  async function ai(path, body, timeoutMs = 120000) {
+    const ctrl = new AbortController();
+    const t = setTimeout(() => ctrl.abort(), timeoutMs);
+    try {
+      const res = await fetch(AI_ENDPOINT.replace(/\/$/, "") + path, {
+        method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(body), signal: ctrl.signal
+      });
+      if (!res.ok) throw new Error("IA " + res.status);
+      return await res.json();
+    } finally { clearTimeout(t); }
+  }
 
   // Preguntas de práctica por puesto: [pregunta, cómo respondería un buen candidato]. Redactadas para la app, no son citas.
   const PROFILES = {
@@ -452,7 +473,7 @@
   });
 
   // Lectura del CV en el propio dispositivo (pdf.js) y extracción sencilla de experiencia, estudios y herramientas.
-  let cv = null;
+  let cv = null, cvText = "";
   const PDFJS = "https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/";
   function loadPdfJs() {
     if (window.pdfjsLib) return Promise.resolve(window.pdfjsLib);
@@ -511,11 +532,15 @@
   $("cv").addEventListener("change", async (e) => {
     const file = e.target.files[0];
     const box = $("cv-read");
-    cv = null;
+    cv = null; cvText = "";
     if (!file) { box.hidden = true; return; }
     box.hidden = false; box.textContent = "Leyendo tu CV…";
     $("start").disabled = true;
-    try { cv = parseCv(await pdfText(file)); renderCv(box, cv); }
+    try {
+      const txt = await pdfText(file);
+      cvText = txt.replace(/[ \t]+/g, " ").replace(/\n{3,}/g, "\n\n").trim().slice(0, 20000);
+      cv = parseCv(txt); renderCv(box, cv);
+    }
     catch { box.textContent = "No hemos podido leer ese PDF. Puedes hacer la entrevista sin CV."; }
     $("start").disabled = !supported;
   });
@@ -531,6 +556,10 @@
       $("bw-text").textContent = "Desde la app de TikTok o Instagram no funciona el micrófono. Pulsa los tres puntos y elige «Abrir en el navegador», o copia el enlace y pégalo en Chrome o Safari.";
     }
     $("start").disabled = true;
+  }
+  if (AI_ENDPOINT) {
+    $("fact-cv").textContent = "Tu CV y tus respuestas se envían a Claude (la IA de Anthropic) para preparar y corregir la entrevista. Nosotros no los guardamos.";
+    $("fact-voz").textContent = "No grabamos tu voz. La transcribe el reconocimiento de voz de tu navegador (Google en Chrome, Apple en Safari).";
   }
   $("copy-link").addEventListener("click", async (e) => {
     try { await navigator.clipboard.writeText(location.href); e.target.textContent = "Enlace copiado"; }
@@ -689,9 +718,36 @@
       return;
     }
     const info = lookup(empresaInput.value);
-    session = { info, perfil: puesto.value, questions: buildInterview(info, puesto.value, cv), answers: [] };
+    session = { info, perfil: puesto.value, answers: [] };
+    if (AI_ENDPOINT) $("start").textContent = cvText ? "Lucía está leyendo tu CV y preparando la entrevista…" : "Lucía está preparando tu entrevista…";
+    await prepareQuestions();
     runCall();
   });
+
+  // Con IA, Claude prepara las preguntas; si falla o no hay servidor, se usa el banco local.
+  const SRC_AI = { general: "Pregunta general", empresa: "Sobre la empresa", cv: "Sacada de tu CV", puesto: "Pregunta del puesto", caso: "Caso práctico" };
+  async function prepareQuestions() {
+    session.ai = false;
+    if (AI_ENDPOINT) {
+      try {
+        const p = PROFILES[session.perfil];
+        const banco = {
+          reportadas_por_candidatos_de_esta_empresa: session.info.reported ? session.info.reported.qs.map((q) => q[0]) : [],
+          practica_para_el_puesto: p.qs.map((q) => q[0]),
+          ejemplo_en_ingles: p.en[0]
+        };
+        const out = await ai("/plan", { empresa: session.info.name, puesto: p.label, cv: cvText, banco });
+        session.questions = out.preguntas.map((q) => ({
+          text: q.texto, model: q.respuesta_modelo,
+          lang: q.idioma === "en" ? "en-US" : "es-ES",
+          src: q.idioma === "en" ? "Cambio al inglés sin avisar" : (SRC_AI[q.origen] || "Pregunta")
+        }));
+        session.ai = true;
+        return;
+      } catch (err) { console.warn("Plan con IA no disponible, uso el banco local.", err); }
+    }
+    session.questions = buildInterview(session.info, session.perfil, cv);
+  }
 
   async function runCall() {
     hungUp = false;
@@ -703,9 +759,12 @@
     window.scrollTo(0, 0);
 
     const qs = session.questions;
+    const total = qs.filter((x) => !x.followup).length;
+    let main = 0, followups = 0;
     for (let i = 0; i < qs.length && !hungUp; i++) {
       const q = qs[i];
-      $("progress").textContent = `Pregunta ${i + 1} de ${qs.length}`;
+      if (!q.followup) main++;
+      $("progress").textContent = q.followup ? `Repregunta · ${main} de ${total}` : `Pregunta ${main} de ${total}`;
       $("heard").textContent = "";
       $("next").disabled = true;
       stage.dataset.speaking = "ai";
@@ -717,6 +776,18 @@
       try {
         const a = await listen(q.lang);
         session.answers.push({ q: q.text, model: q.model, lang: q.lang, src: q.src, text: a.text, latency: a.latency, duration: a.duration });
+        // Como una reclutadora real: como mucho dos repreguntas por entrevista, nunca tras el saludo ni sobre otra repregunta.
+        if (session.ai && !hungUp && !q.followup && i > 0 && followups < 2 && a.text && wordsOf(a.text) >= 3) {
+          stage.dataset.speaking = "ai";
+          caption("Lucía", q.lang, "…");
+          try {
+            const r = await ai("/turn", { pregunta: q.text, respuesta: a.text, idioma: q.lang.slice(0, 2), puesto: PROFILES[session.perfil].label, empresa: session.info.name }, 20000);
+            if (r.repreguntar && r.texto) {
+              qs.splice(i + 1, 0, { text: r.texto, lang: q.lang, src: "Repregunta de Lucía", model: "", followup: true });
+              followups++;
+            }
+          } catch { /* sin repregunta: seguimos con la siguiente */ }
+        }
       } catch {
         hungUp = true;
         endCall();
@@ -732,6 +803,20 @@
       await speak("Gracias, hemos terminado. Ahora te enseño tu nota.", "es-ES");
     }
     endCall();
+    session.evaluation = null;
+    if (session.ai && session.answers.length) {
+      stage.dataset.speaking = "ai";
+      $("progress").textContent = "";
+      caption("Lucía", "es-ES", "Estoy corrigiendo tu entrevista. Tardo menos de un minuto…");
+      $("heard").textContent = "";
+      $("next").disabled = true;
+      try {
+        session.evaluation = await ai("/evaluate", {
+          empresa: session.info.name, puesto: PROFILES[session.perfil].label, cv: cvText,
+          transcripcion: session.answers.map((x) => ({ pregunta: x.q, respuesta: x.text, idioma: x.lang.slice(0, 2), latencia: x.latency }))
+        });
+      } catch (err) { console.warn("Corrección con IA no disponible, uso la nota local.", err); }
+    }
     showResult();
   }
   function endCall() { clearInterval(timerId); speechSynthesis.cancel(); }
@@ -807,30 +892,56 @@
     const a = session.answers;
     if (!a.length) { $("screen-call").hidden = true; $("screen-setup").hidden = false; $("start").disabled = false; $("start").textContent = "Empezar la llamada"; return; }
     const s = score(a);
-    session.score = s;
+    const ev = session.evaluation;
+    const n10 = (x) => clamp(Number(x) || 0, 0, 10);
+    session.score = { ...s, nota: ev ? n10(ev.nota) : s.nota };
     $("sc-who").textContent = `${session.info.name}, ${PROFILES[session.perfil].label.toLowerCase()}`;
-    $("sc-grade").textContent = fmt(s.nota);
-    const rows = [["Desarrollo", fmt(s.desarrollo)], ["Rapidez al responder", fmt(s.seguridad)], ["Claridad (muletillas)", fmt(s.claridad)]];
-    if (s.ingles != null) rows.push(["Inglés", fmt(s.ingles)]);
-    rows.push(["Sin responder", String(s.misses + (session.questions.length - a.length))]);
-    rows.push(["Muletillas", String(s.fillTotal)]);
+    $("sc-grade").textContent = fmt(session.score.nota);
+    let rows;
+    if (ev) {
+      rows = [["Contenido", fmt(n10(ev.apartados.contenido))], ["Estructura", fmt(n10(ev.apartados.estructura))], ["Seguridad", fmt(n10(ev.apartados.seguridad))]];
+      if (a.some((x) => x.lang.startsWith("en"))) rows.push(["Inglés", fmt(n10(ev.apartados.ingles))]);
+      if (s.avgLat != null) rows.push(["Tiempo medio en arrancar", fmt(s.avgLat) + " s"]);
+      rows.push(["Muletillas", String(s.fillTotal)]);
+    } else {
+      rows = [["Desarrollo", fmt(s.desarrollo)], ["Rapidez al responder", fmt(s.seguridad)], ["Claridad (muletillas)", fmt(s.claridad)]];
+      if (s.ingles != null) rows.push(["Inglés", fmt(s.ingles)]);
+      rows.push(["Sin responder", String(s.misses + (session.questions.length - a.length))]);
+      rows.push(["Muletillas", String(s.fillTotal)]);
+    }
     $("sc-list").innerHTML = "";
     rows.forEach(([k, v]) => { const dt = document.createElement("dt"); dt.textContent = k; const dd = document.createElement("dd"); dd.textContent = v; $("sc-list").append(dt, dd); });
-    $("sc-roast").textContent = roastFor(s);
+    $("sc-roast").textContent = ev && ev.comentario ? ev.comentario : roastFor(s);
+    $("result-note").textContent = ev
+      ? "Corregida por Claude, la IA de Anthropic, como lo haría una reclutadora exigente. Las respuestas vienen de un reconocimiento de voz, así que alguna palabra puede salir mal transcrita."
+      : "Nota orientativa. Mide si respondes de verdad y con desarrollo, cuánto tardas en arrancar, tus muletillas y tu inglés. Todavía no juzga si lo que dices es acertado: para eso, compara tus respuestas con las de un buen candidato, más abajo.";
+    const sum = $("ai-summary");
+    sum.hidden = !(ev && ev.resumen);
+    if (ev && ev.resumen) { sum.innerHTML = "<p><strong>Lo que tienes que mejorar</strong></p><p></p>"; sum.lastElementChild.textContent = ev.resumen; }
 
     const list = $("review"); list.innerHTML = "";
-    a.forEach((ans) => {
+    a.forEach((ans, idx) => {
       const li = document.createElement("li");
       const f = Object.values(countFillers(ans.text)).reduce((x, y) => x + y, 0);
       const v = verdict(ans);
-      li.innerHTML = '<p class="q"></p><p class="src"></p><p class="a"></p><p class="stats"></p><div class="model"><strong>Cómo respondería un buen candidato</strong><p></p></div>';
+      const aiq = ev && Array.isArray(ev.preguntas) ? (ev.preguntas.find((p) => p.numero === idx + 1) || ev.preguntas[idx]) : null;
+      li.innerHTML = '<p class="q"></p><p class="src"></p><p class="a"></p><p class="stats"></p><div class="model"><strong></strong><p></p></div>';
       li.querySelector(".q").textContent = ans.q;
       li.querySelector(".src").textContent = ans.src;
       li.querySelector(".a").textContent = ans.text ? "«" + ans.text + "»" : "No te hemos oído responder.";
       const st = li.querySelector(".stats");
-      st.textContent = v.text + (ans.latency != null ? ` · empezaste a los ${fmt(ans.latency)} s` : "") + (ans.lang.startsWith("es") && ans.text ? ` · ${f} muletillas` : "");
-      st.classList.toggle("bad", v.bad);
-      li.querySelector(".model p").textContent = ans.model;
+      const meta = (ans.latency != null ? ` · empezaste a los ${fmt(ans.latency)} s` : "") + (ans.lang.startsWith("es") && ans.text ? ` · ${f} muletillas` : "");
+      if (aiq) {
+        st.textContent = `${fmt(n10(aiq.nota))}/10 · ${aiq.comentario}` + meta;
+        st.classList.toggle("bad", n10(aiq.nota) < 5);
+      } else {
+        st.textContent = v.text + meta;
+        st.classList.toggle("bad", v.bad);
+      }
+      const best = aiq && aiq.respuesta_mejorada ? aiq.respuesta_mejorada : ans.model;
+      li.querySelector(".model strong").textContent = aiq ? "Cómo lo diría un buen candidato con tu perfil" : "Cómo respondería un buen candidato";
+      li.querySelector(".model p").textContent = best;
+      if (!best) li.querySelector(".model").remove();
       list.appendChild(li);
     });
     session.questions.slice(a.length).forEach((q) => {
@@ -838,7 +949,19 @@
       li.innerHTML = '<p class="q"></p><p class="stats bad">No llegaste a esta pregunta.</p><div class="model"><strong>Cómo respondería un buen candidato</strong><p></p></div>';
       li.querySelector(".q").textContent = q.text;
       li.querySelector(".model p").textContent = q.model;
+      if (!q.model) li.querySelector(".model").remove();
       list.appendChild(li);
+    });
+
+    const fixes = ev && Array.isArray(ev.correcciones_ingles) ? ev.correcciones_ingles.filter((c) => c.dijiste && c.mejor) : [];
+    $("en-fixes").hidden = !fixes.length;
+    const enList = $("en-list"); enList.innerHTML = "";
+    fixes.forEach((c) => {
+      const li = document.createElement("li");
+      li.innerHTML = '<p class="a"></p><div class="model"><strong>Mejor así</strong><p></p></div>';
+      li.querySelector(".a").textContent = "«" + c.dijiste + "»";
+      li.querySelector(".model p").textContent = c.mejor;
+      enList.appendChild(li);
     });
 
     $("screen-call").hidden = true; $("screen-result").hidden = false;
@@ -846,10 +969,12 @@
     $("t-result").focus();
   }
 
-  $("again").addEventListener("click", () => {
-    session.questions = buildInterview(session.info, session.perfil, cv);
-    session.answers = [];
+  $("again").addEventListener("click", async (e) => {
     speechSynthesis.speak(new SpeechSynthesisUtterance(" "));
+    e.target.disabled = true; e.target.textContent = "Preparando otras preguntas…";
+    session.answers = [];
+    await prepareQuestions();
+    e.target.disabled = false; e.target.textContent = "Repetir con otras preguntas";
     runCall();
   });
   $("share").addEventListener("click", async (e) => {
