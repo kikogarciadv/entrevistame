@@ -4,9 +4,9 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Prueba Entrevístame · Entrevista de 5 minutos por voz</title>
-<meta name="description" content="Elige empresa y puesto, sube tu CV si quieres y haz una entrevista de práctica hablando en voz alta con Lucía, la entrevistadora de IA. Al final, tu nota y cómo habría respondido un buen candidato.">
+<meta name="description" content="Elige empresa y puesto, sube tu CV si quieres y haz una entrevista de práctica hablando en voz alta con Lucía o Daniel, entrevistadores de IA. Al final, tu nota y cómo habría respondido un buen candidato.">
 <meta property="og:title" content="Entrevístame: haz una entrevista de práctica de 5 minutos">
-<meta property="og:description" content="Habla con Lucía, te cambia al inglés sin avisar y te pone nota. ¿Superas la mía?">
+<meta property="og:description" content="Una entrevista por voz que te cambia al inglés sin avisar y te pone nota. ¿Superas la mía?">
 <meta name="theme-color" content="#F2F4F8">
 <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='9' fill='%232341E0'/%3E%3Ccircle cx='16' cy='16' r='5' fill='%23E23B3B'/%3E%3C/svg%3E">
 <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -84,6 +84,22 @@
   .chips { display: flex; flex-wrap: wrap; gap: 6px; list-style: none; padding: 0; margin: 0 0 8px; }
   .chips li { background: var(--cobalt-tint); color: var(--cobalt-deep); border-radius: 999px; padding: 3px 10px; font-weight: 600; font-size: 0.88rem; }
 
+  /* Quién entrevista y cámara */
+  fieldset.field { border: 0; padding: 0; margin: 0; min-width: 0; }
+  fieldset.field legend { font-weight: 600; font-size: 0.95rem; margin-bottom: 6px; padding: 0; }
+  .seg { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; }
+  .seg label { position: relative; cursor: pointer; }
+  .seg input { position: absolute; opacity: 0; inset: 0; margin: 0; cursor: pointer; }
+  .seg span { display: grid; place-items: center; text-align: center; min-height: 58px; padding: 8px 6px; background: var(--surface); border: 1.5px solid var(--line); border-radius: var(--radius-control); font-weight: 700; line-height: 1.2; }
+  .seg small { display: block; font-weight: 400; font-size: 0.8rem; color: var(--ink-soft); }
+  .seg input:checked + span { border-color: var(--cobalt); background: var(--cobalt-tint); color: var(--cobalt-deep); }
+  .seg input:focus-visible + span { outline: 3px solid var(--cobalt); outline-offset: 2px; }
+  .field .note { font-size: 0.88rem; color: var(--ink-soft); margin: 6px 0 0; }
+  .field .toggle { display: flex; margin: 0; font-weight: 400; gap: 12px; align-items: flex-start; background: var(--surface); border: 1.5px solid var(--line); border-radius: var(--radius-control); padding: 14px; cursor: pointer; }
+  .toggle input { width: 22px; height: 22px; margin: 1px 0 0; accent-color: var(--cobalt); flex: none; }
+  .toggle strong { display: block; font-size: 0.98rem; }
+  .toggle .small { display: block; margin-top: 2px; }
+
   /* Llamada */
   .call { background: var(--surface); border-radius: var(--radius-window); border: 1.5px solid var(--line); box-shadow: 0 30px 60px -30px rgba(18, 23, 51, 0.35); overflow: hidden; margin-bottom: 56px; }
   .call-bar { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 14px 18px; border-bottom: 1.5px solid var(--line); font-size: 0.92rem; }
@@ -107,6 +123,11 @@
   .self svg { width: 20px; height: 20px; }
   .self .bars { display: flex; gap: 3px; align-items: center; height: 16px; }
   .self .bars b { width: 3px; height: 4px; border-radius: 2px; background: #fff; }
+  .self video { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; transform: scaleX(-1); border-radius: inherit; }
+  .self.cam { width: 132px; height: 99px; overflow: hidden; align-content: end; padding-bottom: 6px; color: #fff; text-shadow: 0 1px 3px rgba(0,0,0,0.6); }
+  .self.cam svg { display: none; }
+  .self.cam .bars, .self.cam .me { position: relative; }
+  .stage.cam { padding-bottom: 122px; }
   .stage[data-speaking="me"] .self { outline: 2px solid #fff; }
   .stage[data-speaking="me"] .self .bars b { animation: bar 0.5s ease-in-out infinite alternate; }
   .self .bars b:nth-child(2) { animation-delay: 0.15s; } .self .bars b:nth-child(3) { animation-delay: 0.3s; } .self .bars b:nth-child(4) { animation-delay: 0.1s; }
@@ -174,7 +195,7 @@
   <!-- 1. Preparación -->
   <section id="screen-setup" aria-labelledby="t-setup">
     <h1 id="t-setup">Haz una entrevista de 5 minutos.</h1>
-    <p class="lede">Lucía te hará 5 o 6 preguntas en voz alta. Contesta hablando, como en una llamada. Una de ellas llegará en inglés.</p>
+    <p class="lede">Te harán 6 preguntas en voz alta, adaptadas a la empresa y al puesto. Contesta hablando, como en una llamada. Una de ellas llegará en inglés.</p>
 
     <div class="notice" id="browser-warning" hidden role="alert">
       <strong id="bw-title">Tu navegador no permite la llamada</strong>
@@ -190,12 +211,29 @@
       </div>
       <div class="field">
         <label for="puesto">Puesto</label>
-        <select id="puesto" name="puesto"></select>
+        <select id="puesto" name="puesto"><option value="">Cargando puestos…</option></select>
+        <p class="note" id="puesto-note"></p>
       </div>
       <div class="field">
         <label for="cv">Tu CV en PDF <span class="hint">(opcional, para que te pregunte por tu experiencia)</span></label>
         <input id="cv" name="cv" type="file" accept="application/pdf,.pdf">
         <div class="cv-read" id="cv-read" hidden aria-live="polite"></div>
+      </div>
+      <fieldset class="field">
+        <legend>¿Quién te entrevista?</legend>
+        <div class="seg">
+          <label><input type="radio" name="voz" value="f" checked><span>Lucía<small>Voz de mujer</small></span></label>
+          <label><input type="radio" name="voz" value="m"><span>Daniel<small>Voz de hombre</small></span></label>
+          <label><input type="radio" name="voz" value="x"><span>Me da igual</span></label>
+        </div>
+        <p class="note" id="voz-note" aria-live="polite"></p>
+      </fieldset>
+      <div class="field">
+        <label class="toggle" for="camara">
+          <input type="checkbox" id="camara" name="camara">
+          <span><strong>Encender la cámara <span class="hint">(opcional)</span></strong>
+          <span class="small">Te verás como en una videollamada y al final sabrás si mirabas a cámara, cómo era la luz y si te movías mucho. La imagen se analiza en tu dispositivo: no se graba ni se envía.</span></span>
+        </label>
       </div>
       <button class="btn" type="submit" id="start">Empezar la llamada</button>
       <ul class="facts">
@@ -208,7 +246,7 @@
   </section>
 
   <!-- 2. Llamada -->
-  <section id="screen-call" hidden aria-label="Llamada con Lucía">
+  <section id="screen-call" hidden aria-label="Llamada de la entrevista">
     <div class="call">
       <div class="call-bar">
         <span class="call-who"><span id="call-company"></span><small id="call-role"></small></span>
@@ -216,12 +254,13 @@
       </div>
       <div class="stage" id="stage" data-speaking="ai">
         <span class="progress" id="progress"></span>
-        <div class="speaker" aria-hidden="true"><span class="ring"></span><span class="ring"></span><span class="face">L</span></div>
-        <div class="speaker-name">Lucía<small>Entrevistadora de IA</small></div>
-        <div class="self" aria-hidden="true">
+        <div class="speaker" aria-hidden="true"><span class="ring"></span><span class="ring"></span><span class="face" id="who-face">L</span></div>
+        <div class="speaker-name"><span id="who-name">Lucía</span><small id="who-role">Entrevistadora de IA</small></div>
+        <div class="self" id="self" aria-hidden="true">
+          <video id="self-video" playsinline muted hidden></video>
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M16 16v1a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V7a2 2 0 0 1 2-2h2m5.66 0H14a2 2 0 0 1 2 2v3.34l1 1L23 7v10"/><line x1="1" y1="1" x2="23" y2="23"/></svg>
           <span class="bars"><b></b><b></b><b></b><b></b></span>
-          Tú
+          <span class="me">Tú</span>
         </div>
       </div>
       <div class="captions" aria-live="polite">
@@ -258,6 +297,8 @@
         <button class="btn" type="button" id="share">Retar a un amigo</button>
         <button class="btn ghost" type="button" id="again">Repetir con otras preguntas</button>
       </div>
+
+      <div class="cv-read" id="cam-summary" hidden></div>
 
       <div>
         <h2>Pregunta a pregunta</h2>
@@ -304,7 +345,7 @@
 </main>
 
 <footer class="wrap">
-  <p>Entrevístame no tiene relación con las empresas que aparecen. Las preguntas marcadas como «basada en candidatos» resumen experiencias publicadas en Glassdoor y prensa; los procesos cambian según ciudad, fecha y puesto. El resto son preguntas de práctica para el puesto.</p>
+  <p>Entrevístame no tiene relación con las empresas que aparecen. Las preguntas marcadas como «basada en candidatos» resumen temas que candidatos dicen que les preguntaron, con su ciudad y fecha cuando se conocen; los procesos cambian según convocatoria, centro y puesto. Las demás son preguntas de práctica y casos con datos ficticios, no preguntas que la empresa haya hecho.</p>
   <p>Privacidad: si te apuntas, guardamos tu email, tus respuestas al formulario y tu nota, no lo que dijiste ni tu CV. Para borrarlos escribe a <a href="mailto:kikogdv@gmail.com">kikogdv@gmail.com</a>.</p>
 </footer>
 
@@ -390,86 +431,95 @@
       en: ["Tell me about a time you dealt with a difficult guest.", "«A guest was unhappy because his food was late. I apologised, I spoke with the kitchen and offered him a drink. In the end, he left a good review.»"] }
   };
 
-  // Empresas con temas que aparecen en experiencias de candidatos (resumidos, no citas).
+  // Banco del dossier (banco.json): fichas de 103 empresas, 30 familias de puestos, casos e inglés.
   const STAR = "Usa una historia con situación, qué hiciste tú y qué resultado conseguiste, con un dato concreto si puedes.";
-  const REPORTED = {
-    "Inditex": { perfil: "ventas", qs: [
-      ["¿Qué sabes de nuestras marcas y en cuál te ves trabajando?", "Nombra varias marcas del grupo y di en cuál te ves y por qué (público, estilo). Mejor si has visitado la tienda esa semana."],
-      ["¿Qué aportarías tú al equipo de tienda?", "Una cualidad útil en tienda (orden, trato al cliente, ritmo) con un ejemplo real que la demuestre."],
-      ["¿Qué disponibilidad de horario tienes?", "Claro y honesto: horarios, fines de semana y rebajas. La flexibilidad suma mucho en tienda."]] },
-    "Mercadona": { perfil: "caja", qs: [
-      ["Cuéntame tu experiencia y qué has estudiado.", "Resúmelo en 30 segundos y relaciónalo con atención al cliente, ritmo de trabajo y equipo."],
-      ["¿Te ves trabajando mucho tiempo en Mercadona?", "Mercadona valora la permanencia: habla de crecer dentro, de su formación y promoción interna, y de buscar estabilidad."],
-      ["¿Qué disponibilidad tienes?", "Claro y honesto con turnos, fines de semana y festivos. La flexibilidad suma."]] },
-    "KPMG": { perfil: "consultoria", qs: [
-      ["Cálculo rápido: una empresa factura 4 millones de euros con un margen del 15 %. ¿Cuánto gana?", "600.000 €. Dilo paso a paso en voz alta: el 10 % son 400.000 y el 5 % son 200.000."],
-      ["¿Por qué consultoría y por qué KPMG?", "Consultoría: aprender rápido en muchos sectores y trabajar con clientes. KPMG: algo concreto (un área, un proyecto, su formación), no «es una gran empresa»."]] },
-    "PwC": { perfil: "auditoria", qs: [
-      ["¿Qué diferencia hay entre beneficio y flujo de caja?", "El beneficio incluye ventas no cobradas y gastos no pagados; la caja es el dinero real que entra y sale. Una empresa con beneficios puede quedarse sin caja."],
-      ["¿Por qué quieres empezar tu carrera en PwC?", "Algo concreto de la firma (formación, sector, oficina) unido a tu plan de carrera en auditoría."]] },
-    "Deloitte": { perfil: "consultoria", qs: [
-      ["Cuéntame una experiencia en la que tuviste que resolver un problema complicado.", STAR],
-      ["¿Por qué Deloitte y por qué este programa?", "Algo concreto del programa (rotaciones, formación, área) y cómo encaja con lo que quieres aprender."]] },
-    "EY": { perfil: "consultoria", qs: [
-      ["Háblame de una vez que tuviste que negociar algo.", STAR + " Muestra que buscaste un acuerdo bueno para las dos partes."],
-      ["¿Qué te motiva de EY frente a otras firmas?", "Una diferencia concreta de EY (un área, su cultura, un proyecto conocido), no algo que valga para cualquier firma."]] },
-    "Indra": { perfil: "software", qs: [
-      ["¿Con qué tecnologías has trabajado y hasta qué nivel las dominas?", "Honestidad: qué has usado en proyectos reales y qué solo conoces. Un ejemplo vale más que una lista."],
-      ["¿Te resulta cómodo trabajar con documentación técnica en inglés?", "Sí, con un ejemplo de documentación o manuales que hayas leído o escrito en inglés."]] },
-    "Capgemini": { perfil: "software", qs: [
-      ["Háblame de los proyectos en los que has trabajado.", "Uno o dos proyectos: el problema, tu papel, la tecnología y el resultado."],
-      ["¿Qué papel tuviste tú en el último proyecto?", "Di lo que hiciste tú, no el equipo, y qué decisión fue tuya."]] },
-    "NTT DATA": { perfil: "software", qs: [
-      ["Cuéntame tu trayectoria y las tecnologías que usas en el día a día.", "Recorrido breve en orden, la tecnología de cada etapa y por qué te interesa este puesto."]] },
-    "Sacyr": { perfil: "industrial", qs: [
-      ["¿Qué proyectos de Sacyr conoces?", "Cita uno o dos proyectos reales de Sacyr (búscalos antes en su web) y qué te interesa de ellos."],
-      ["Cuéntame un problema técnico que hayas resuelto.", STAR]] }
-  };
-  const ALIASES = {
-    "Zara": "Inditex", "Pull&Bear": "Inditex", "Massimo Dutti": "Inditex", "Bershka": "Inditex", "Stradivarius": "Inditex",
-    "Oysho": "Inditex", "Zara Home": "Inditex", "Lefties": "Inditex", "Minsait": "Indra", "Indra/Minsait": "Indra",
-    "Capgemini Engineering": "Capgemini"
-  };
-
-  // Catálogo por sector, con el puesto que se propone por defecto.
-  const CATALOG = [
-    ["ventas", "Inditex, Zara, Pull&Bear, Massimo Dutti, Bershka, Stradivarius, Oysho, Zara Home, Lefties, Mango, Cortefiel, Springfield, Women'secret, H&M, Primark, C&A, Kiabi, Uniqlo, Pepco, Action, El Corte Inglés, IKEA, Decathlon, Leroy Merlin, MediaMarkt, FNAC, PcComponentes, Worten, JYSK, JD Sports, Nike, Adidas, Foot Locker, Druni, Primor, Sephora, Douglas, Arenal, Kiwoko, Tiendanimal, Norauto, Feu Vert, Brico Depôt"],
-    ["caja", "Mercadona, Carrefour, Lidl, Aldi, DIA, Eroski, Consum, Alcampo, Ahorramás, Bonpreu, Gadisa, Froiz, Covirán, Makro, Costco, HiperDino, Spar"],
-    ["consultoria", "Deloitte, PwC, EY, KPMG, Accenture, Capgemini, NTT DATA, Indra, Minsait, IBM Consulting, Sopra Steria, Inetum, T-Systems, CGI, BearingPoint, McKinsey, BCG, Bain, Kearney, Oliver Wyman, Roland Berger, Strategy&, EY-Parthenon, Grant Thornton, BDO, RSM, Forvis Mazars, Crowe, Auren, Baker Tilly"],
-    ["atencion", "Santander, BBVA, CaixaBank, Banco Sabadell, Bankinter, Unicaja, Abanca, Kutxabank, Ibercaja, ING, Openbank, WiZink, Revolut, N26, Mapfre, Mutua Madrileña, AXA, Allianz, Generali, Zurich, Línea Directa, Sanitas, DKV, Santalucía, Ebury, Wise, Qonto, Stripe, Adyen, Klarna"],
-    ["software", "Google, Microsoft, Amazon, AWS, Apple, Meta, Salesforce, Oracle, SAP, Cisco, HP, Huawei, Telefónica, Vodafone, MasOrange, Digi, Cellnex, Amadeus, Glovo, Cabify, Wallapop, Idealista, eDreams, TravelPerk, Factorial, Typeform, Jobandtalent, Fever, Devo, Sngular, Plain Concepts, Freepik, Seedtag, Cobee, Red Points, Clarity AI"],
-    ["industrial", "Iberdrola, Endesa, Naturgy, Repsol, Moeve, Acciona Energía, EDP, Enagás, Redeia, Holaluz, TotalEnergies, Galp, BP, Siemens Gamesa, Vestas, Schneider Electric, ACS, Ferrovial, Acciona, Sacyr, FCC, OHLA, Técnicas Reunidas, Sener, IDOM, Ayesa, Airbus, Navantia, CAF, Talgo, SEAT/CUPRA, Renault, Stellantis, Ford, Mercedes-Benz, Gestamp, CIE Automotive, ArcelorMittal, Acerinox, Michelin, Bosch, Saica"],
-    ["almacen", "Correos, Amazon Logistics, SEUR, MRW, DHL, UPS, GLS, NACEX, CTT Express, XPO, DB Schenker, GXO, Logista, Maersk, Renfe, Adif, Alsa, Vueling, Iberia, Air Europa, Ryanair, Aena, IAG"],
-    ["hosteleria", "Coca-Cola Europacific Partners, Mahou San Miguel, Heineken España, Damm, Estrella Galicia, Calidad Pascual, Campofrío, Bimbo, Nestlé, Danone, PepsiCo, Unilever, Mondelez, McDonald's, Burger King, KFC, Alsea, VIPS, Restalia, Telepizza, Goiko, Five Guys, Meliá, Barceló, RIU, Iberostar, NH Hotels, Eurostars, Paradores, Grifols, PharmaMar, Almirall, Rovi, Esteve, Ferrer, Cinfa, Kern Pharma, Werfen, Quirónsalud, HM Hospitales, Vithas, Ribera Salud, Fresenius"]
-  ];
-
-  const norm = (s) => s.normalize("NFD").replace(/[̀-ͯ]/g, "").toLowerCase().trim();
-  const COMPANY = new Map(); // nombre normalizado -> { name, perfil }
-  CATALOG.forEach(([perfil, list]) => list.split(", ").forEach((name) => COMPANY.set(norm(name), { name, perfil })));
-
+  const norm = (s) => s.normalize("NFD").replace(/[̀-ͯ]/g, "").toLowerCase().replace(/\s+/g, " ").trim();
   const $ = (id) => document.getElementById(id);
-  const datalist = $("empresas");
-  [...COMPANY.values()].sort((a, b) => a.name.localeCompare(b.name, "es")).forEach((c) => {
-    const o = document.createElement("option"); o.value = c.name; datalist.appendChild(o);
-  });
-  const puesto = $("puesto");
-  Object.entries(PROFILES).forEach(([k, p]) => {
-    const o = document.createElement("option"); o.value = k; o.textContent = p.label; puesto.appendChild(o);
-  });
+  // Nombres con los que la gente busca una ficha que tiene otro título.
+  const ALIAS_EXTRA = {
+    "amazon logistics": "Amazon - operaciones y almacén", "amazon web services": "Amazon / AWS", "aws": "Amazon / AWS",
+    "nh hotels": "Minor Hotels Europe & Americas / NH", "minor hotels": "Minor Hotels Europe & Americas / NH", "nh": "Minor Hotels Europe & Americas / NH",
+    "melia": "Meliá Hotels International", "barcelo": "Barceló Hotel Group", "mckinsey": "McKinsey & Company", "bcg": "Boston Consulting Group",
+    "bain": "Bain & Company", "axa": "AXA Seguros", "renault": "Renault Group", "renfe": "Grupo Renfe", "alsea": "Alsea Europa",
+    "fcc": "FCC Medio Ambiente / FCCenviro", "ibm consulting": "IBM", "dragados": "ACS / Dragados", "indra/minsait": "Indra / Minsait",
+    "seat/cupra": "SEAT / CUPRA", "cepsa/moeve": "Moeve (antes Cepsa)", "capgemini engineering": "Capgemini", "aldi": "ALDI"
+  };
+  let BANCO = null;
+  const FICHAS = new Map();   // nombre normalizado -> [fichas]
+  const SECTOR = new Map();   // nombre normalizado -> sector del catálogo
+  const DISPLAY = new Map();  // nombre normalizado -> cómo se escribe
+  const FAM = {}, CASO = {}, EN = {};
+  const addFicha = (k, f) => { const l = FICHAS.get(k) || []; if (!l.includes(f)) l.push(f); FICHAS.set(k, l); };
 
   function lookup(raw) {
-    const known = COMPANY.get(norm(raw));
-    const name = known ? known.name : raw.trim();
-    const group = ALIASES[name] || name;
-    const reported = REPORTED[group] || null;
-    return { name, reported, perfil: (reported && reported.perfil) || (known && known.perfil) || null };
+    const k = norm(raw);
+    const fichas = FICHAS.get(k) || [];
+    const sector = fichas.length ? fichas[0].sector : SECTOR.get(k) || null;
+    return { name: DISPLAY.get(k) || raw.trim(), fichas, sector };
   }
-  let puestoTouched = false;
-  puesto.addEventListener("change", () => { puestoTouched = true; });
+
+  const puesto = $("puesto");
+  let puestoKey = null;
+  function opt(parent, value, label) { const o = document.createElement("option"); o.value = value; o.textContent = label; parent.appendChild(o); }
+  function group(label) { const g = document.createElement("optgroup"); g.label = label; puesto.appendChild(g); return g; }
+  // Solo se ofrecen puestos que tienen sentido en esa empresa: los de su ficha y los habituales de su sector.
+  function fillPuestos(info) {
+    if (!BANCO) return;
+    const key = info.fichas.map((f) => f.id).join() + "|" + (info.sector || "");
+    if (key === puestoKey) return;
+    puestoKey = key;
+    const prev = puesto.value;
+    puesto.innerHTML = "";
+    const used = new Set();
+    if (info.fichas.length) {
+      const g = group(`Puestos en ${info.name}`);
+      const seen = new Set();
+      info.fichas.flatMap((f) => f.puestos).forEach((p) => {
+        if (seen.has(norm(p.nombre))) return;
+        seen.add(norm(p.nombre)); used.add(p.familia);
+        opt(g, p.familia + "|" + p.nombre, p.nombre);
+      });
+    }
+    const ids = info.sector ? BANCO.mapas.sector_familias[info.sector] : Object.keys(FAM);
+    const rest = ids.filter((id) => !used.has(id));
+    if (rest.length) {
+      const g = info.fichas.length || info.sector ? group(info.fichas.length ? "Otros puestos del sector" : "Puestos habituales del sector") : puesto;
+      rest.forEach((id) => opt(g, id + "|", FAM[id].nombre));
+    }
+    if ([...puesto.options].some((o) => o.value === prev)) puesto.value = prev;
+    $("puesto-note").textContent = info.fichas.length
+      ? (info.fichas.some((f) => f.reportadas.length) ? `Con preguntas que candidatos dicen haber recibido en ${info.name}.` : `Con preguntas de práctica preparadas para ${info.name}.`)
+      : info.sector ? "Puestos habituales en empresas de este sector." : "";
+  }
+  function selectedPuesto() {
+    const [familia, nombre] = (puesto.value || "P12|").split("|");
+    return { familia, nombre: nombre || FAM[familia].nombre };
+  }
+
+  fetch("banco.json").then((r) => r.json()).then((b) => {
+    BANCO = b;
+    b.familias.forEach((f) => { FAM[f.id] = f; });
+    b.casos.forEach((c) => { CASO[c.id] = c; });
+    b.ingles.forEach((e) => { EN[e.id] = e; });
+    Object.entries(b.catalogo).forEach(([sector, names]) => names.forEach((n) => {
+      const k = norm(n);
+      if (!SECTOR.has(k)) SECTOR.set(k, sector);
+      if (!DISPLAY.has(k)) DISPLAY.set(k, n);
+    }));
+    b.empresas.forEach((f) => {
+      const names = [f.nombre, ...f.nombre.replace(/\)$/, "").split(/\s*\/\s*|\s+-\s+|\s*\(antes\s*/), ...f.alias];
+      names.forEach((n) => { if (n.length > 1) { addFicha(norm(n), f); if (!DISPLAY.has(norm(n))) DISPLAY.set(norm(n), n); } });
+    });
+    Object.entries(ALIAS_EXTRA).forEach(([k, n]) => { const f = b.empresas.find((x) => x.nombre === n); if (f) addFicha(k, f); });
+    // Marcas del catálogo que pertenecen a un grupo con ficha (por ejemplo Zara → Inditex).
+    const datalist = $("empresas");
+    [...new Set(DISPLAY.values())].sort((x, y) => x.localeCompare(y, "es")).forEach((n) => opt(datalist, n, n));
+    fillPuestos(lookup($("empresa").value));
+  }).catch(() => { puesto.innerHTML = ""; opt(puesto, "", "No se han podido cargar los puestos. Recarga la página."); });
+
   $("empresa").addEventListener("input", (e) => {
     clearError(e.target);
-    const info = lookup(e.target.value);
-    if (info.perfil && !puestoTouched) puesto.value = info.perfil;
+    fillPuestos(lookup(e.target.value));
   });
 
   // Lectura del CV en el propio dispositivo (pdf.js) y extracción sencilla de experiencia, estudios y herramientas.
@@ -520,7 +570,7 @@
     box.hidden = false; box.innerHTML = "";
     const found = data.jobs.length + data.edu.length + data.skills.length;
     const p = document.createElement("p");
-    p.textContent = found ? "Esto es lo que Lucía ha leído de tu CV y usará en la entrevista:" : "No hemos sacado nada claro de tu CV (puede ser una imagen escaneada). Haremos la entrevista estándar.";
+    p.textContent = found ? "Esto hemos leído de tu CV y saldrá en la entrevista:" : "No hemos sacado nada claro de tu CV (puede ser una imagen escaneada). Haremos la entrevista estándar.";
     box.appendChild(p);
     if (!found) return;
     const ul = document.createElement("ul"); ul.className = "chips";
@@ -566,22 +616,53 @@
     catch { e.target.textContent = location.href; }
   });
 
-  // Voz de Lucía
+  // Quién entrevista: Lucía (voz de mujer) o Daniel (voz de hombre). «Me da igual» elige al azar en cada entrevista.
+  const INTERVIEWERS = {
+    f: { name: "Lucía", initial: "L", role: "Entrevistadora de IA", genero: "f" },
+    m: { name: "Daniel", initial: "D", role: "Entrevistador de IA", genero: "m" }
+  };
+  let who = INTERVIEWERS.f;
+  const vozElegida = () => document.querySelector('input[name="voz"]:checked').value;
+  function chooseInterviewer() {
+    const v = vozElegida();
+    who = INTERVIEWERS[v === "x" ? (Math.random() < 0.5 ? "f" : "m") : v];
+    $("who-face").textContent = who.initial;
+    $("who-name").textContent = who.name;
+    $("who-role").textContent = who.role;
+  }
+
+  // Voces del navegador. El nombre de la voz es la única pista de si es de hombre o de mujer.
   let voices = [];
   const loadVoices = () => { voices = speechSynthesis.getVoices(); };
   if (window.speechSynthesis) { loadVoices(); speechSynthesis.addEventListener?.("voiceschanged", loadVoices); }
-  function pickVoice(lang) {
+  const FEMALE_VOICE = /female|mujer|m[oó]nica|elvira|helena|laura|luc[ií]a|paulina|marisol|sabina|paloma|dalia|elena|ximena|abril|esperanza|google español|samantha|serena|kate|sonia|libby|jenny|aria|zira|karen|moira|tessa|victoria|susan|hazel|ava|allison|emma|natasha|clara/i;
+  const MALE_VOICE = /\bmale\b|hombre|jorge|pablo|[aá]lvaro|diego|juan|carlos|enrique|ra[uú]l|gonzalo|dar[ií]o|daniel|alex|fred|david|mark|guy|ryan|thomas|arthur|aaron|oliver|george|james|tom\b|rishi|eddy|reed|google uk english male/i;
+  const voiceGender = (v) => (FEMALE_VOICE.test(v.name) ? "f" : MALE_VOICE.test(v.name) ? "m" : null);
+  function pickVoice(lang, genero) {
     const prefix = lang.slice(0, 2);
-    const female = /m[oó]nica|elvira|helena|laura|luc[ií]a|paulina|marisol|sabina|google español|samantha|serena|kate|sonia|libby|google uk english female/i;
     const cands = voices.filter((v) => v.lang.replace("_", "-").startsWith(prefix));
-    const score = (v) => (v.lang.replace("_", "-") === lang ? 2 : 0) + (female.test(v.name) ? 1 : 0) + (v.localService ? 0 : 0.5);
+    const score = (v) => (v.lang.replace("_", "-") === lang ? 2 : 0) + (voiceGender(v) === genero ? 3 : voiceGender(v) ? -3 : 0) + (v.localService ? 0 : 0.5);
     return cands.sort((a, b) => score(b) - score(a))[0] || null;
   }
+  // Si el navegador no tiene voz de hombre, se baja el tono de la que haya.
+  const pitchFor = (v, genero) => (v && voiceGender(v) === genero ? 1 : genero === "m" ? 0.75 : 1.08);
+  function voiceNote() {
+    const v = vozElegida();
+    if (v === "x" || !voices.length) { $("voz-note").textContent = ""; return; }
+    const ok = ["es-ES", "en-US"].every((l) => { const pv = pickVoice(l, v); return pv && voiceGender(pv) === v; });
+    $("voz-note").textContent = ok ? "" : `Tu navegador no tiene voz de ${v === "m" ? "hombre" : "mujer"} en todos los idiomas: usaremos la que tiene, con el tono ajustado.`;
+  }
+  document.querySelectorAll('input[name="voz"]').forEach((r) => r.addEventListener("change", () => {
+    voiceNote();
+    const v = vozElegida();
+    if (v !== "x" && window.speechSynthesis) { who = INTERVIEWERS[v]; speak(`Hola, soy ${who.name}.`, "es-ES"); }
+  }));
   function speak(text, lang) {
     return new Promise((resolve) => {
       const u = new SpeechSynthesisUtterance(text);
-      u.lang = lang; u.rate = 1; u.pitch = 1.05;
-      const v = pickVoice(lang); if (v) u.voice = v;
+      u.lang = lang; u.rate = 1;
+      const v = pickVoice(lang, who.genero); if (v) u.voice = v;
+      u.pitch = pitchFor(v, who.genero);
       let done = false;
       const finish = () => { if (!done) { done = true; resolve(); } };
       u.onend = finish; u.onerror = finish;
@@ -640,6 +721,99 @@
     });
   }
 
+  // Cámara opcional. Todo se calcula en el dispositivo: la imagen no se graba ni sale de aquí.
+  // Mide, mientras respondes: si tu cara está en el encuadre y de frente a la cámara, la luz y cuánto te mueves.
+  const MP = "https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision@0.10.14";
+  const FACE_MODEL = "https://storage.googleapis.com/mediapipe-models/face_detector/blaze_face_short_range/float16/1/blaze_face_short_range.tflite";
+  let detectorPromise = null;
+  function loadDetector() {
+    if (!detectorPromise) detectorPromise = (async () => {
+      const { FilesetResolver, FaceDetector } = await import(MP + "/vision_bundle.mjs");
+      const files = await FilesetResolver.forVisionTasks(MP + "/wasm");
+      return FaceDetector.createFromOptions(files, { baseOptions: { modelAssetPath: FACE_MODEL }, runningMode: "VIDEO", minDetectionConfidence: 0.5 });
+    })().catch((err) => { console.warn("Detector de caras no disponible; solo se mide luz y movimiento.", err); return null; });
+    return detectorPromise;
+  }
+  $("camara").addEventListener("change", (e) => { if (e.target.checked) loadDetector(); });
+
+  const cam = { stream: null, detector: null, timer: null, stats: null, prev: null, canvas: document.createElement("canvas") };
+  cam.canvas.width = 32; cam.canvas.height = 24;
+  async function startCamera() {
+    cam.stats = null;
+    if (!$("camara").checked || !navigator.mediaDevices) return false;
+    try {
+      cam.stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: "user", width: { ideal: 640 }, height: { ideal: 480 } }, audio: false });
+    } catch { cam.stream = null; return false; }
+    const video = $("self-video");
+    video.srcObject = cam.stream; video.hidden = false;
+    try { await video.play(); } catch {}
+    $("self").classList.add("cam"); stage.classList.add("cam");
+    cam.stats = { samples: 0, faces: 0, frontal: 0, luz: 0, moves: [], last: null };
+    cam.prev = null;
+    cam.detector = await Promise.race([loadDetector(), new Promise((r) => setTimeout(() => r(null), 8000))]);
+    cam.timer = setInterval(sampleCamera, 300);
+    return true;
+  }
+  function sampleCamera() {
+    const video = $("self-video"), s = cam.stats;
+    if (!s || stage.dataset.speaking !== "me" || video.readyState < 2) return;
+    const ctx = cam.canvas.getContext("2d", { willReadFrequently: true });
+    ctx.drawImage(video, 0, 0, 32, 24);
+    const px = ctx.getImageData(0, 0, 32, 24).data;
+    const luma = new Float32Array(32 * 24);
+    let sum = 0;
+    for (let i = 0; i < luma.length; i++) { luma[i] = 0.299 * px[i * 4] + 0.587 * px[i * 4 + 1] + 0.114 * px[i * 4 + 2]; sum += luma[i]; }
+    s.samples++; s.luz += sum / luma.length;
+    if (cam.detector) {
+      let face = null;
+      try { face = cam.detector.detectForVideo(video, performance.now()).detections[0]; } catch {}
+      if (face && face.keypoints && face.keypoints.length >= 3) {
+        s.faces++;
+        const [re, le, nose] = face.keypoints;
+        const eyeDist = Math.hypot(le.x - re.x, le.y - re.y) || 1;
+        // Si la nariz queda centrada entre los ojos, la cabeza mira de frente a la cámara.
+        if (Math.abs((nose.x - (re.x + le.x) / 2) / eyeDist) < 0.3) s.frontal++;
+        const c = { x: (re.x + le.x) / 2, y: (re.y + le.y) / 2 };
+        if (s.last) s.moves.push(Math.hypot(c.x - s.last.x, c.y - s.last.y));
+        s.last = c;
+      } else s.last = null;
+    } else {
+      // Sin detector: movimiento como diferencia media entre fotogramas.
+      if (cam.prev) { let d = 0; for (let i = 0; i < luma.length; i++) d += Math.abs(luma[i] - cam.prev[i]); s.moves.push(d / luma.length / 255); }
+      cam.prev = luma;
+    }
+  }
+  function stopCamera() {
+    clearInterval(cam.timer); cam.timer = null;
+    if (cam.stream) cam.stream.getTracks().forEach((t) => t.stop());
+    cam.stream = null;
+    const video = $("self-video"); video.srcObject = null; video.hidden = true;
+    $("self").classList.remove("cam"); stage.classList.remove("cam");
+  }
+  function cameraReport() {
+    const s = cam.stats;
+    if (!s || s.samples < 5) return null;
+    const pct = (x) => Math.round((x / s.samples) * 100);
+    const luz = s.luz / s.samples;
+    const mov = s.moves.length ? s.moves.reduce((a, b) => a + b, 0) / s.moves.length : 0;
+    const limits = cam.detector ? [0.012, 0.03] : [0.02, 0.05];
+    const items = [];
+    if (cam.detector) {
+      items.push(["Cara dentro del encuadre", pct(s.faces) + " %", pct(s.faces) < 80]);
+      if (s.faces) items.push(["De frente a la cámara", Math.round((s.frontal / s.faces) * 100) + " % del tiempo", s.frontal / s.faces < 0.7]);
+    }
+    items.push(["Luz", luz < 55 ? "muy oscura" : luz < 85 ? "algo oscura" : luz > 215 ? "demasiado fuerte" : "buena", luz < 85 || luz > 215]);
+    items.push(["Movimiento", mov < limits[0] ? "estable" : mov < limits[1] ? "normal" : "te mueves mucho", mov >= limits[1]]);
+    const tips = {
+      "Cara dentro del encuadre": "Coloca el móvil a la altura de los ojos y aléjalo un poco: que se vea tu cara entera.",
+      "De frente a la cámara": "Mira a la cámara cuando hables, no a la pantalla ni a tus notas: así parece que miras a quien te entrevista.",
+      "Luz": luz > 215 ? "Hay demasiada luz o una ventana detrás. Ponte de cara a la luz, no de espaldas." : "Busca luz de frente, por ejemplo mirando hacia una ventana.",
+      "Movimiento": "Apoya el móvil y mantén la postura: moverse mucho transmite nervios."
+    };
+    const worst = items.find((i) => i[2]);
+    return { items, tip: worst ? tips[worst[0]] : "Buena imagen: encuadre, luz y postura correctos.", exact: !!cam.detector };
+  }
+
   // Interfaz de la llamada
   const stage = $("stage");
   function caption(who, lang, text) {
@@ -659,32 +833,39 @@
   const shuffle = (a) => a.map((x) => [Math.random(), x]).sort((p, q) => p[0] - q[0]).map((p) => p[1]);
   const pick = (a) => a[Math.floor(Math.random() * a.length)];
 
-  function buildInterview(info, perfilKey, cvData) {
-    const p = PROFILES[perfilKey];
-    const pq = shuffle(p.qs);
-    const rq = info.reported ? shuffle(info.reported.qs) : [];
+  // Sin IA: entrevista montada con el banco. Las respuestas modelo escritas a mano vienen del perfil local equivalente.
+  function buildInterview(info, pu, cvData) {
+    const p = PROFILES[BANCO.mapas.local[pu.familia]];
+    const fam = FAM[pu.familia];
     const SRC_R = "Basada en experiencias de candidatos";
+    const SRC_E = `Práctica para ${info.name}`;
     const SRC_P = "Pregunta de práctica para el puesto";
     const SRC_G = "Pregunta general";
     const SRC_CV = "Sacada de tu CV";
     const q = (text, model, src, lang = "es-ES") => ({ text, model, src, lang });
+    const look = `Lo que se valora en este puesto: ${fam.observar.toLowerCase()}. ${STAR}`;
+    const rq = shuffle(info.fichas.flatMap((f) => f.reportadas)).map((r) => q(r.texto, `Responde con algo concreto de ${info.name} y un ejemplo tuyo. ${STAR}`, SRC_R));
+    const eq = shuffle(info.fichas.flatMap((f) => f.practica).filter((x) => x.perfil === pu.nombre || x.familia === pu.familia))
+      .map((x) => q(x.texto, `Se valora: ${x.competencia.toLowerCase()}. Explica cómo lo harías paso a paso y, si puedes, cuándo lo hiciste.`, SRC_E));
+    const pq = shuffle(p.qs).map(([t, m]) => q(t, m, SRC_P));
+    const fq = shuffle(fam.preguntas).map((x) => q(x.texto, look, SRC_P));
+    const pool = [...eq, ...pq, ...fq];
     const hasCv = cvData && (cvData.jobs.length || cvData.edu.length || cvData.skills.length);
 
     const intro = hasCv
-      ? q(`Hola, soy Lucía y hoy te entrevisto para ${info.name}. He leído tu CV. Para empezar, preséntate en un minuto y cuéntame por qué encajas en este puesto.`,
+      ? q(`Hola, soy ${who.name} y hoy te entrevisto para ${info.name}. He leído tu CV. Para empezar, preséntate en un minuto y cuéntame por qué encajas en este puesto.`,
           "Un minuto con estructura: quién eres hoy, una o dos experiencias de tu CV con un dato concreto y por qué este puesto es el siguiente paso lógico. No repitas el CV línea a línea.", SRC_G)
-      : q(`Hola, soy Lucía y hoy te entrevisto para ${info.name}. Para empezar, preséntate en un minuto.`,
+      : q(`Hola, soy ${who.name} y hoy te entrevisto para ${info.name}. Para empezar, preséntate en un minuto.`,
           "Un minuto con estructura: quién eres hoy (estudios o puesto), una o dos experiencias con un dato concreto y por qué este puesto encaja contigo. No repitas el CV línea a línea.", SRC_G);
-    const company = rq[0] ? q(rq[0][0], rq[0][1], SRC_R)
-      : q(`¿Por qué quieres trabajar en ${info.name} y no en otra empresa del sector?`,
-          `Nombra algo concreto de ${info.name}: un proyecto, un cliente, un área o una noticia reciente, y únelo a lo que quieres aprender o aportar. «Es una empresa grande e innovadora» vale para cualquiera y no convence.`, SRC_G);
+    const company = rq[0] || q(`¿Por qué quieres trabajar en ${info.name} y no en otra empresa del sector?`,
+      `Nombra algo concreto de ${info.name}: un proyecto, un cliente, un área o una noticia reciente, y únelo a lo que quieres aprender o aportar. «Es una empresa grande e innovadora» vale para cualquiera y no convence.`, SRC_G);
 
     const list = [intro, company];
     if (hasCv && cvData.jobs.length) {
       list.push(q(`En tu CV aparece «${pick(cvData.jobs)}». Cuéntame qué hacías allí y un resultado concreto que consiguieras.`,
         "Situación, tu tarea, lo que hiciste tú y el resultado con un número («reduje el tiempo de 5 a 3 días»). Termina uniéndolo con lo que harías en este puesto.", SRC_CV));
-    }
-    list.push(q(pq[0][0], pq[0][1], SRC_P));
+    } else list.push(rq[1] || pool.shift());
+    list.push(pool.shift());
     if (hasCv && cvData.skills.length) {
       const s = pick(cvData.skills);
       list.push(q(`Mencionas ${s} en tu CV. ¿Dónde lo has usado y qué nivel tienes de verdad?`,
@@ -692,12 +873,10 @@
     } else if (hasCv && cvData.edu.length) {
       list.push(q(`Veo en tu CV «${pick(cvData.edu)}». ¿Qué de tu formación te sirve para este puesto en ${info.name}?`,
         "Elige una o dos asignaturas, proyectos o habilidades concretas y explica cómo las usarías en el día a día del puesto.", SRC_CV));
-    } else {
-      list.push(rq[1] ? q(rq[1][0], rq[1][1], SRC_R) : q(pq[1][0], pq[1][1], SRC_P));
-    }
+    } else list.push(pool.shift());
     const lead = hasCv && cvData.english ? `Your CV says your English level is ${cvData.english}, so let's continue in English. ` : "Okay, let's switch to English for a moment. ";
     list.push(q(lead + p.en[0], p.en[1], "Cambio al inglés sin avisar", "en-US"));
-    return list;
+    return list.filter(Boolean);
   }
 
   let session = null;
@@ -705,8 +884,10 @@
     e.preventDefault();
     const empresaInput = $("empresa");
     if (!empresaInput.value.trim()) { showError(empresaInput, "Escribe la empresa para la que quieres practicar."); empresaInput.focus(); return; }
+    if (!BANCO) { showError(empresaInput, "Todavía se están cargando los puestos. Espera un segundo y vuelve a pulsar."); return; }
     // Desbloquea la voz en iPhone: tiene que arrancar dentro del toque.
     speechSynthesis.speak(new SpeechSynthesisUtterance(" "));
+    chooseInterviewer();
 
     $("start").disabled = true; $("start").textContent = "Pidiendo el micrófono…";
     try {
@@ -717,28 +898,51 @@
       showError(empresaInput, "Necesitamos el micrófono para la llamada. Dale permiso en los ajustes del navegador y vuelve a intentarlo.");
       return;
     }
+    if ($("camara").checked) {
+      $("start").textContent = "Encendiendo la cámara…";
+      if (!(await startCamera())) $("camara").checked = false;
+    }
     const info = lookup(empresaInput.value);
-    session = { info, perfil: puesto.value, answers: [] };
-    if (AI_ENDPOINT) $("start").textContent = cvText ? "Lucía está leyendo tu CV y preparando la entrevista…" : "Lucía está preparando tu entrevista…";
+    session = { info, puesto: selectedPuesto(), answers: [] };
+    if (AI_ENDPOINT) $("start").textContent = cvText ? `${who.name} está leyendo tu CV y preparando la entrevista…` : `${who.name} está preparando tu entrevista…`;
     await prepareQuestions();
     runCall();
   });
 
   // Con IA, Claude prepara las preguntas; si falla o no hay servidor, se usa el banco local.
   const SRC_AI = { general: "Pregunta general", empresa: "Sobre la empresa", cv: "Sacada de tu CV", puesto: "Pregunta del puesto", caso: "Caso práctico" };
+  // Lo que se envía a Claude del dossier: proceso y preguntas de la empresa, preguntas del puesto, un caso con datos y la pregunta en inglés.
+  function bancoPara(info, pu) {
+    const fam = FAM[pu.familia];
+    const caso = CASO[BANCO.mapas.caso[pu.familia]];
+    const en = EN[BANCO.mapas.ingles[pu.familia]];
+    const cut = (t, n) => (t.length > n ? t.slice(0, n - 1) + "…" : t);
+    return {
+      proceso_en_esta_empresa: info.fichas.map((f) => cut(f.evidencia, 500) + (f.alcance ? " Alcance: " + cut(f.alcance, 200) : "")).join(" ") || "No hay información publicada sobre el proceso de esta empresa.",
+      reportadas_por_candidatos: info.fichas.flatMap((f) => f.reportadas).slice(0, 8).map((r) => ({ pregunta: r.texto, puesto: r.puesto, contexto: cut(r.nota, 120) })),
+      practica_de_esta_empresa: info.fichas.flatMap((f) => f.practica).filter((x) => x.perfil === pu.nombre || x.familia === pu.familia || !x.familia)
+        .slice(0, 6).map((x) => `${x.texto} (${x.competencia})`),
+      practica_del_puesto: { familia: fam.nombre, que_se_observa: fam.observar, preguntas: fam.preguntas.map((x) => `${x.texto} [${x.nivel}]`), ejercicio: fam.ejercicio },
+      caso_practico: caso ? { titulo: caso.titulo, enunciado: caso.enunciado, datos_ficticios: caso.datos, tarea: caso.trabajo.slice(0, 2), desarrollo_orientativo: caso.desarrollo.slice(0, 3) } : null,
+      ingles: en ? { pregunta: en.texto, repregunta: en.seguimiento, que_se_valora: en.foco } : null
+    };
+  }
+  function criteriosPara(pu) {
+    const caso = CASO[BANCO.mapas.caso[pu.familia]];
+    return { rubrica: BANCO.rubrica, que_se_observa_en_el_puesto: FAM[pu.familia].observar, caso: caso ? { titulo: caso.titulo, criterios: caso.criterios, desarrollo_orientativo: caso.desarrollo } : null };
+  }
+  // Si el servidor aún no sabe que hay entrevistador, cambia el nombre en lo que escribe.
+  const asWho = (t) => (who.name === "Lucía" || !t ? t : t.replace(/\bLucía\b/g, who.name).replace(/\bentrevistadora\b/g, "entrevistador"));
+  const entrevistador = () => ({ nombre: who.name, genero: who.genero });
+
   async function prepareQuestions() {
     session.ai = false;
+    const pu = session.puesto;
     if (AI_ENDPOINT) {
       try {
-        const p = PROFILES[session.perfil];
-        const banco = {
-          reportadas_por_candidatos_de_esta_empresa: session.info.reported ? session.info.reported.qs.map((q) => q[0]) : [],
-          practica_para_el_puesto: p.qs.map((q) => q[0]),
-          ejemplo_en_ingles: p.en[0]
-        };
-        const out = await ai("/plan", { empresa: session.info.name, puesto: p.label, cv: cvText, banco });
+        const out = await ai("/plan", { empresa: session.info.name, puesto: pu.nombre, cv: cvText, banco: bancoPara(session.info, pu), entrevistador: entrevistador() });
         session.questions = out.preguntas.map((q) => ({
-          text: q.texto, model: q.respuesta_modelo,
+          text: asWho(q.texto), model: asWho(q.respuesta_modelo),
           lang: q.idioma === "en" ? "en-US" : "es-ES",
           src: q.idioma === "en" ? "Cambio al inglés sin avisar" : (SRC_AI[q.origen] || "Pregunta")
         }));
@@ -746,14 +950,14 @@
         return;
       } catch (err) { console.warn("Plan con IA no disponible, uso el banco local.", err); }
     }
-    session.questions = buildInterview(session.info, session.perfil, cv);
+    session.questions = buildInterview(session.info, pu, cv);
   }
 
   async function runCall() {
     hungUp = false;
     $("screen-setup").hidden = true; $("screen-result").hidden = true; $("screen-call").hidden = false;
     $("call-company").textContent = session.info.name;
-    $("call-role").textContent = PROFILES[session.perfil].label;
+    $("call-role").textContent = session.puesto.nombre;
     $("timer").textContent = "00:00";
     startTimer();
     window.scrollTo(0, 0);
@@ -768,7 +972,7 @@
       $("heard").textContent = "";
       $("next").disabled = true;
       stage.dataset.speaking = "ai";
-      caption("Lucía", q.lang, q.text);
+      caption(who.name, q.lang, q.text);
       await speak(q.text, q.lang);
       if (hungUp) break;
       stage.dataset.speaking = "me";
@@ -776,14 +980,14 @@
       try {
         const a = await listen(q.lang);
         session.answers.push({ q: q.text, model: q.model, lang: q.lang, src: q.src, text: a.text, latency: a.latency, duration: a.duration });
-        // Como una reclutadora real: como mucho dos repreguntas por entrevista, nunca tras el saludo ni sobre otra repregunta.
+        // Como en una entrevista real: como mucho dos repreguntas por entrevista, nunca tras el saludo ni sobre otra repregunta.
         if (session.ai && !hungUp && !q.followup && i > 0 && followups < 2 && a.text && wordsOf(a.text) >= 3) {
           stage.dataset.speaking = "ai";
-          caption("Lucía", q.lang, "…");
+          caption(who.name, q.lang, "…");
           try {
-            const r = await ai("/turn", { pregunta: q.text, respuesta: a.text, idioma: q.lang.slice(0, 2), puesto: PROFILES[session.perfil].label, empresa: session.info.name }, 20000);
+            const r = await ai("/turn", { pregunta: q.text, respuesta: a.text, idioma: q.lang.slice(0, 2), puesto: session.puesto.nombre, empresa: session.info.name, entrevistador: entrevistador() }, 20000);
             if (r.repreguntar && r.texto) {
-              qs.splice(i + 1, 0, { text: r.texto, lang: q.lang, src: "Repregunta de Lucía", model: "", followup: true });
+              qs.splice(i + 1, 0, { text: asWho(r.texto), lang: q.lang, src: `Repregunta de ${who.name}`, model: "", followup: true });
               followups++;
             }
           } catch { /* sin repregunta: seguimos con la siguiente */ }
@@ -799,7 +1003,7 @@
     }
     stage.dataset.speaking = "ai";
     if (!hungUp) {
-      caption("Lucía", "es-ES", "Gracias, hemos terminado. Ahora te enseño tu nota.");
+      caption(who.name, "es-ES", "Gracias, hemos terminado. Ahora te enseño tu nota.");
       await speak("Gracias, hemos terminado. Ahora te enseño tu nota.", "es-ES");
     }
     endCall();
@@ -807,19 +1011,19 @@
     if (session.ai && session.answers.length) {
       stage.dataset.speaking = "ai";
       $("progress").textContent = "";
-      caption("Lucía", "es-ES", "Estoy corrigiendo tu entrevista. Tardo menos de un minuto…");
+      caption(who.name, "es-ES", "Estoy corrigiendo tu entrevista. Tardo menos de un minuto…");
       $("heard").textContent = "";
       $("next").disabled = true;
       try {
         session.evaluation = await ai("/evaluate", {
-          empresa: session.info.name, puesto: PROFILES[session.perfil].label, cv: cvText,
+          empresa: session.info.name, puesto: session.puesto.nombre, cv: cvText, entrevistador: entrevistador(), criterios: criteriosPara(session.puesto),
           transcripcion: session.answers.map((x) => ({ pregunta: x.q, respuesta: x.text, idioma: x.lang.slice(0, 2), latencia: x.latency }))
         });
       } catch (err) { console.warn("Corrección con IA no disponible, uso la nota local.", err); }
     }
     showResult();
   }
-  function endCall() { clearInterval(timerId); speechSynthesis.cancel(); }
+  function endCall() { clearInterval(timerId); speechSynthesis.cancel(); stopCamera(); }
 
   $("next").addEventListener("click", () => current && current.finish());
   $("hang").addEventListener("click", () => {
@@ -872,11 +1076,11 @@
     return { nota, desarrollo, seguridad, claridad, ingles, avgLat, top, fillTotal, esWords, misses, shortOnes, enW: en ? wordsOf(en.text) : 0 };
   }
   function roastFor(s) {
-    if (s.esWords === 0) return "Lucía ha hablado sola. La próxima vez, contesta tú también.";
-    if (s.misses >= 1) return s.misses === 1 ? "Un «no sé» en una entrevista es un cero. Siempre se puede razonar en voz alta." : `${s.misses} preguntas sin responder. Lucía se ha quedado esperando.`;
+    if (s.esWords === 0) return `${who.name} ha hablado solo${who.genero === "f" ? "a" : ""}. La próxima vez, contesta tú también.`;
+    if (s.misses >= 1) return s.misses === 1 ? "Un «no sé» en una entrevista es un cero. Siempre se puede razonar en voz alta." : `${s.misses} preguntas sin responder. ${who.name} se ha quedado esperando.`;
     if (s.ingles != null && s.ingles <= 4.5) return "Al pasar al inglés, poco más que un saludo. Ahí se decide más de una entrevista.";
     if (s.shortOnes >= 2) return "Respuestas de telegrama. Cuenta qué hiciste, cómo y qué conseguiste.";
-    if (s.top && s.top[1] >= 4) return `Dijiste «${s.top[0]}» ${s.top[1]} veces. Lucía ha dejado de contarlas.`;
+    if (s.top && s.top[1] >= 4) return `Dijiste «${s.top[0]}» ${s.top[1]} veces. ${who.name} ha dejado de contarlas.`;
     if (s.avgLat != null && s.avgLat > 5) return `Tardaste ${fmt(s.avgLat)} segundos de media en arrancar. Ponle ritmo.`;
     if (s.nota >= 8) return "Poco que reprochar. Sospechoso.";
     return s.top ? `Tu muletilla favorita: «${s.top[0]}». Vigílala.` : "Ni una muletilla. Así sí.";
@@ -895,7 +1099,7 @@
     const ev = session.evaluation;
     const n10 = (x) => clamp(Number(x) || 0, 0, 10);
     session.score = { ...s, nota: ev ? n10(ev.nota) : s.nota };
-    $("sc-who").textContent = `${session.info.name}, ${PROFILES[session.perfil].label.toLowerCase()}`;
+    $("sc-who").textContent = `${session.info.name}, ${session.puesto.nombre.toLowerCase()}`;
     $("sc-grade").textContent = fmt(session.score.nota);
     let rows;
     if (ev) {
@@ -913,11 +1117,22 @@
     rows.forEach(([k, v]) => { const dt = document.createElement("dt"); dt.textContent = k; const dd = document.createElement("dd"); dd.textContent = v; $("sc-list").append(dt, dd); });
     $("sc-roast").textContent = ev && ev.comentario ? ev.comentario : roastFor(s);
     $("result-note").textContent = ev
-      ? "Corregida por Claude, la IA de Anthropic, como lo haría una reclutadora exigente. Las respuestas vienen de un reconocimiento de voz, así que alguna palabra puede salir mal transcrita."
+      ? "Corregida por Claude, la IA de Anthropic, con el criterio de una entrevista exigente. Las respuestas vienen de un reconocimiento de voz, así que alguna palabra puede salir mal transcrita."
       : "Nota orientativa. Mide si respondes de verdad y con desarrollo, cuánto tardas en arrancar, tus muletillas y tu inglés. Todavía no juzga si lo que dices es acertado: para eso, compara tus respuestas con las de un buen candidato, más abajo.";
     const sum = $("ai-summary");
     sum.hidden = !(ev && ev.resumen);
     if (ev && ev.resumen) { sum.innerHTML = "<p><strong>Lo que tienes que mejorar</strong></p><p></p>"; sum.lastElementChild.textContent = ev.resumen; }
+
+    const cr = cameraReport();
+    const cs = $("cam-summary");
+    cs.hidden = !cr; cs.innerHTML = "";
+    if (cr) {
+      const h = document.createElement("p"); h.innerHTML = "<strong>Tu imagen en cámara</strong>"; cs.appendChild(h);
+      const dl = document.createElement("ul"); dl.className = "chips";
+      cr.items.forEach(([k, v]) => { const li = document.createElement("li"); li.textContent = `${k}: ${v}`; dl.appendChild(li); });
+      cs.appendChild(dl);
+      const t = document.createElement("p"); t.textContent = cr.tip + (cr.exact ? "" : " (Esta vez no se ha podido cargar el detector de caras: solo medimos luz y movimiento.)"); cs.appendChild(t);
+    }
 
     const list = $("review"); list.innerHTML = "";
     a.forEach((ans, idx) => {
@@ -973,13 +1188,14 @@
     speechSynthesis.speak(new SpeechSynthesisUtterance(" "));
     e.target.disabled = true; e.target.textContent = "Preparando otras preguntas…";
     session.answers = [];
+    if ($("camara").checked) await startCamera();
     await prepareQuestions();
     e.target.disabled = false; e.target.textContent = "Repetir con otras preguntas";
     runCall();
   });
   $("share").addEventListener("click", async (e) => {
     const url = location.origin + location.pathname + "?utm_source=reto";
-    const text = `He sacado un ${fmt(session.score.nota)} en mi entrevista de práctica para ${session.info.name}. Lucía me ha cambiado al inglés sin avisar. ¿Superas mi nota?`;
+    const text = `He sacado un ${fmt(session.score.nota)} en mi entrevista de práctica para ${session.info.name}. ${who.name} me ha cambiado al inglés sin avisar. ¿Superas mi nota?`;
     if (navigator.share) { try { await navigator.share({ text, url }); } catch {} return; }
     try { await navigator.clipboard.writeText(text + " " + url); e.target.textContent = "Copiado, pégalo donde quieras"; } catch {}
   });
@@ -1010,7 +1226,7 @@
     btn.disabled = true; btn.textContent = "Apuntándote…";
     const data = Object.fromEntries(new FormData(form));
     Object.assign(data, {
-      empresa: session.info.name, puesto: PROFILES[session.perfil].label,
+      empresa: session.info.name, puesto: session.puesto.nombre, entrevistador: who.name, camara: cam.stats ? "sí" : "no",
       nota: fmt(session.score.nota), respuestas: session.answers.length, con_cv: cv ? "sí" : "no",
       origen: "prueba", utm: location.search
     });
