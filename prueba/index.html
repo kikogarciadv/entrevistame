@@ -84,6 +84,20 @@
   .chips { display: flex; flex-wrap: wrap; gap: 6px; list-style: none; padding: 0; margin: 0 0 8px; }
   .chips li { background: var(--cobalt-tint); color: var(--cobalt-deep); border-radius: 999px; padding: 3px 10px; font-weight: 600; font-size: 0.88rem; }
 
+  /* Versión completa: candado y botones de pago */
+  .field .consent-start { display: flex; margin: 12px 0 0; font-weight: 400; font-size: 0.9rem; cursor: pointer; }
+  .field .consent-start input { width: 20px; height: 20px; min-height: 0; padding: 0; margin: 1px 0 0; }
+  .pay-options { display: grid; gap: 10px; margin-top: 12px; }
+  .pay-options .btn { width: 100%; }
+  .pay-options .price { font-weight: 400; opacity: 0.85; }
+  .pay-done { margin: 12px 0 0; font-weight: 600; }
+  .paywall { border-color: var(--cobalt); }
+  .paywall h2 { margin-bottom: 4px; }
+  .model.locked { position: relative; overflow: hidden; }
+  .model.locked p { filter: blur(5px); user-select: none; }
+  .model.locked .unlock { position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; gap: 8px; font: inherit; font-weight: 700; color: var(--cobalt-deep); background: rgba(232, 236, 253, 0.55); border: 0; cursor: pointer; width: 100%; }
+  .model.locked .unlock svg { width: 18px; height: 18px; }
+
   /* Buscador de empresas */
   .search { position: relative; }
   .search svg { position: absolute; left: 14px; top: 15px; width: 20px; height: 20px; color: var(--ink-soft); pointer-events: none; }
@@ -249,6 +263,16 @@
           <span class="small">Te verás como en una videollamada y al final sabrás si mirabas a cámara, cómo era la luz y si te movías mucho. La imagen se analiza en tu dispositivo: no se graba ni se envía.</span></span>
         </label>
       </div>
+      <div class="field">
+        <label for="email-start">Tu email <span class="hint">(una entrevista gratis por persona)</span></label>
+        <input id="email-start" name="email" type="email" autocomplete="email" inputmode="email" required>
+        <label class="consent consent-start"><input type="checkbox" id="avisar"><span>Avisadme cuando abra la versión completa.</span></label>
+      </div>
+      <div class="notice" id="used-notice" hidden role="alert">
+        <strong id="used-title">Ya has hecho tu entrevista gratis</strong>
+        <p id="used-text">Con este email ya se ha hecho la entrevista gratuita. La versión completa te deja repetir con otras preguntas y ver el informe entero.</p>
+        <div class="pay-options" data-where="inicio"></div>
+      </div>
       <button class="btn" type="submit" id="start">Empezar la llamada</button>
       <ul class="facts">
         <li>Necesitas un sitio tranquilo y dar permiso al micrófono.</li>
@@ -324,43 +348,22 @@
         <ul class="review" id="en-list"></ul>
       </div>
 
-      <form class="signup" id="form-prueba" novalidate>
-        <h2>¿Quieres la versión completa?</h2>
-        <p class="small">15 minutos, con el proceso real de tu empresa, repreguntas y una nota sobre lo que dices, no solo sobre cómo lo dices.</p>
-        <div class="field">
-          <label for="email">Tu email</label>
-          <input id="email" name="email" type="email" autocomplete="email" inputmode="email" required>
-        </div>
-        <div class="field">
-          <label for="pagaria">¿Pagarías por ella?</label>
-          <select id="pagaria" name="pagaria">
-            <option value="si-5">Sí, unos 5 € por entrevista</option>
-            <option value="si-pack">Sí, si es un pack barato</option>
-            <option value="solo-gratis">Solo si es gratis</option>
-          </select>
-        </div>
-        <div class="field">
-          <label for="cuando">¿Cuándo es tu próxima entrevista?</label>
-          <select id="cuando" name="cuando">
-            <option value="sin-fecha">Todavía no tengo ninguna</option>
-            <option value="esta-semana">Esta semana</option>
-            <option value="este-mes">Este mes</option>
-            <option value="mas-adelante">Más adelante</option>
-          </select>
-        </div>
-        <label class="consent">
-          <input type="checkbox" name="consentimiento" id="consent" required>
-          <span>Acepto que me escribáis cuando abra la app. Nada más.</span>
-        </label>
-        <button class="btn" type="submit">Apuntarme a la lista</button>
-      </form>
+      <div class="signup paywall" id="paywall" tabindex="-1">
+        <h2>Desbloquea tu informe completo</h2>
+        <ul class="facts">
+          <li>Cómo lo diría un buen candidato en todas tus preguntas, no solo en las dos primeras.</li>
+          <li>Tu inglés corregido frase a frase.</li>
+          <li>Repetir la entrevista con otras preguntas de tu empresa y un caso nuevo.</li>
+        </ul>
+        <div class="pay-options" data-where="resultado"></div>
+      </div>
     </div>
   </section>
 </main>
 
 <footer class="wrap">
   <p>Entrevístame no tiene relación con las empresas que aparecen. Las preguntas marcadas como «basada en candidatos» resumen temas que candidatos dicen que les preguntaron, con su ciudad y fecha cuando se conocen; los procesos cambian según convocatoria, centro y puesto. Las demás son preguntas de práctica y casos con datos ficticios, no preguntas que la empresa haya hecho.</p>
-  <p>Privacidad: si te apuntas, guardamos tu email, tus respuestas al formulario y tu nota, no lo que dijiste ni tu CV. Para borrarlos escribe a <a href="mailto:kikogdv@gmail.com">kikogdv@gmail.com</a>.</p>
+  <p>Privacidad: para darte una sola entrevista gratis guardamos tu email, la empresa, el puesto, tu nota y si te interesa la versión completa. No guardamos lo que dices, tu voz, tu imagen ni tu CV. Solo te escribiremos si marcas «Avisadme» o pulsas un botón de la versión completa. Para borrar tus datos escribe a <a href="mailto:kikogdv@gmail.com">kikogdv@gmail.com</a>.</p>
 </footer>
 
 <script>
@@ -376,7 +379,7 @@
       const res = await fetch(AI_ENDPOINT.replace(/\/$/, "") + path, {
         method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(body), signal: ctrl.signal
       });
-      if (!res.ok) throw new Error("IA " + res.status);
+      if (!res.ok) { const err = new Error("IA " + res.status); err.status = res.status; throw err; }
       return await res.json();
     } finally { clearTimeout(t); }
   }
@@ -960,6 +963,11 @@
     const empresaInput = $("empresa");
     if (!empresaInput.value.trim()) { showError(empresaInput, "Escribe la empresa para la que quieres practicar."); empresaInput.focus(); return; }
     if (!BANCO) { showError(empresaInput, "Todavía se están cargando los puestos. Espera un segundo y vuelve a pulsar."); return; }
+    const emailInput = $("email-start");
+    if (!emailOk(emailInput.value)) { showError(emailInput, "Escribe tu email para tu entrevista gratis, por ejemplo nombre@gmail.com."); emailInput.focus(); return; }
+    clearError(emailInput);
+    $("used-notice").hidden = true;
+    try { localStorage.setItem("entrevistame_email", emailInput.value.trim()); } catch {}
     // Desbloquea la voz en iPhone: tiene que arrancar dentro del toque.
     speechSynthesis.speak(new SpeechSynthesisUtterance(" "));
     chooseInterviewer();
@@ -978,9 +986,20 @@
       if (!(await startCamera())) $("camara").checked = false;
     }
     const info = lookup(empresaInput.value);
-    session = { info, puesto: selectedPuesto(), answers: [] };
+    session = { info, puesto: selectedPuesto(), answers: [], email: emailInput.value.trim(), avisar: $("avisar").checked };
     if (AI_ENDPOINT) $("start").textContent = cvText ? `${who.name} está leyendo tu CV y preparando la entrevista…` : `${who.name} está preparando tu entrevista…`;
-    await prepareQuestions();
+    const blocked = await prepareQuestions();
+    if (blocked) {
+      stopCamera();
+      $("start").disabled = false; $("start").textContent = "Empezar la llamada";
+      $("used-title").textContent = blocked === 402 ? "Ya has hecho tu entrevista gratis" : "Demasiadas entrevistas desde esta conexión";
+      $("used-text").textContent = blocked === 402
+        ? "Con este email ya se ha hecho la entrevista gratuita. La versión completa te deja repetir con otras preguntas y ver el informe entero."
+        : "Hoy ya se han hecho varias entrevistas gratis desde esta red. Vuelve mañana o mira la versión completa.";
+      $("used-notice").hidden = false;
+      $("used-notice").scrollIntoView({ block: "center" });
+      return;
+    }
     runCall();
   });
 
@@ -1015,7 +1034,8 @@
     const pu = session.puesto;
     if (AI_ENDPOINT) {
       try {
-        const out = await ai("/plan", { empresa: session.info.name, puesto: pu.nombre, cv: cvText, banco: bancoPara(session.info, pu), entrevistador: entrevistador() });
+        const out = await ai("/plan", { empresa: session.info.name, puesto: pu.nombre, cv: cvText, banco: bancoPara(session.info, pu), entrevistador: entrevistador(), email: session.email, avisar: session.avisar });
+        session.token = out.token || null;
         session.questions = out.preguntas.map((q) => ({
           text: asWho(q.texto), model: asWho(q.respuesta_modelo),
           lang: q.idioma === "en" ? "en-US" : "es-ES",
@@ -1023,7 +1043,11 @@
         }));
         session.ai = true;
         return;
-      } catch (err) { console.warn("Plan con IA no disponible, uso el banco local.", err); }
+      } catch (err) {
+        // 402: este email ya gastó su entrevista gratis. 429: demasiadas desde la misma conexión hoy.
+        if (err.status === 402 || err.status === 429) return err.status;
+        console.warn("Plan con IA no disponible, uso el banco local.", err);
+      }
     }
     session.questions = buildInterview(session.info, pu, cv);
   }
@@ -1060,7 +1084,7 @@
           stage.dataset.speaking = "ai";
           caption(who.name, q.lang, "…");
           try {
-            const r = await ai("/turn", { pregunta: q.text, respuesta: a.text, idioma: q.lang.slice(0, 2), puesto: session.puesto.nombre, empresa: session.info.name, entrevistador: entrevistador() }, 20000);
+            const r = await ai("/turn", { pregunta: q.text, respuesta: a.text, idioma: q.lang.slice(0, 2), puesto: session.puesto.nombre, empresa: session.info.name, entrevistador: entrevistador(), token: session.token }, 20000);
             if (r.repreguntar && r.texto) {
               qs.splice(i + 1, 0, { text: asWho(r.texto), lang: q.lang, src: `Repregunta de ${who.name}`, model: "", followup: true });
               followups++;
@@ -1091,7 +1115,7 @@
       $("next").disabled = true;
       try {
         session.evaluation = await ai("/evaluate", {
-          empresa: session.info.name, puesto: session.puesto.nombre, cv: cvText, entrevistador: entrevistador(), criterios: criteriosPara(session.puesto),
+          empresa: session.info.name, puesto: session.puesto.nombre, cv: cvText, entrevistador: entrevistador(), criterios: criteriosPara(session.puesto), token: session.token,
           transcripcion: session.answers.map((x) => ({ pregunta: x.q, respuesta: x.text, idioma: x.lang.slice(0, 2), latencia: x.latency }))
         });
       } catch (err) { console.warn("Corrección con IA no disponible, uso la nota local.", err); }
@@ -1232,6 +1256,7 @@
       li.querySelector(".model strong").textContent = aiq ? "Cómo lo diría un buen candidato con tu perfil" : "Cómo respondería un buen candidato";
       li.querySelector(".model p").textContent = best;
       if (!best) li.querySelector(".model").remove();
+      else if (idx >= FREE_MODELS) lockModel(li.querySelector(".model"));
       list.appendChild(li);
     });
     session.questions.slice(a.length).forEach((q) => {
@@ -1240,17 +1265,19 @@
       li.querySelector(".q").textContent = q.text;
       li.querySelector(".model p").textContent = q.model;
       if (!q.model) li.querySelector(".model").remove();
+      else lockModel(li.querySelector(".model"));
       list.appendChild(li);
     });
 
     const fixes = ev && Array.isArray(ev.correcciones_ingles) ? ev.correcciones_ingles.filter((c) => c.dijiste && c.mejor) : [];
     $("en-fixes").hidden = !fixes.length;
     const enList = $("en-list"); enList.innerHTML = "";
+    // Gratis se ve qué dijiste; la versión corregida va con el informe completo.
     fixes.forEach((c) => {
       const li = document.createElement("li");
       li.innerHTML = '<p class="a"></p><div class="model"><strong>Mejor así</strong><p></p></div>';
       li.querySelector(".a").textContent = "«" + c.dijiste + "»";
-      li.querySelector(".model p").textContent = c.mejor;
+      lockModel(li.querySelector(".model"), "Frase corregida y más natural, lista para usar en tu entrevista.");
       enList.appendChild(li);
     });
 
@@ -1259,15 +1286,7 @@
     $("t-result").focus();
   }
 
-  $("again").addEventListener("click", async (e) => {
-    speechSynthesis.speak(new SpeechSynthesisUtterance(" "));
-    e.target.disabled = true; e.target.textContent = "Preparando otras preguntas…";
-    session.answers = [];
-    if ($("camara").checked) await startCamera();
-    await prepareQuestions();
-    e.target.disabled = false; e.target.textContent = "Repetir con otras preguntas";
-    runCall();
-  });
+  $("again").addEventListener("click", goToPaywall);
   $("share").addEventListener("click", async (e) => {
     const url = location.origin + location.pathname + "?utm_source=reto";
     const text = `He sacado un ${fmt(session.score.nota)} en mi entrevista de práctica para ${session.info.name}. ${who.name} me ha cambiado al inglés sin avisar. ¿Superas mi nota?`;
@@ -1289,35 +1308,60 @@
     const old = document.getElementById(input.id + "-error"); if (old) old.remove();
   }
   const emailOk = (v) => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(v.trim());
-  const form = $("form-prueba");
-  form.addEventListener("submit", async (e) => {
-    e.preventDefault();
-    const email = $("email"), consent = $("consent");
-    let ok = true;
-    if (!emailOk(email.value)) { showError(email, "Escribe un email válido, por ejemplo nombre@gmail.com."); ok = false; }
-    if (!consent.checked) { showError(consent, "Marca la casilla para que podamos avisarte."); ok = false; }
-    if (!ok) { form.querySelector('[aria-invalid="true"]').focus(); return; }
-    const btn = form.querySelector("button");
-    btn.disabled = true; btn.textContent = "Apuntándote…";
-    const data = Object.fromEntries(new FormData(form));
-    Object.assign(data, {
-      empresa: session.info.name, puesto: session.puesto.nombre, entrevistador: who.name, camara: cam.stats ? "sí" : "no",
-      nota: fmt(session.score.nota), respuestas: session.answers.length, con_cv: cv ? "sí" : "no",
-      origen: "prueba", utm: location.search
+  $("email-start").addEventListener("input", (e) => clearError(e.target));
+  try { const saved = localStorage.getItem("entrevistame_email"); if (saved) $("email-start").value = saved; } catch {}
+
+  // Versión completa. Aún no se cobra: los botones miden cuánta gente pagaría y a qué precio.
+  const FREE_MODELS = 2;
+  const PAY = [
+    { opcion: "informe", label: "Informe completo", price: "2,99 €", cls: "btn" },
+    { opcion: "pack", label: "Pack de 3 entrevistas completas", price: "9,99 €", cls: "btn ghost" }
+  ];
+  const LOCK_SVG = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="4" y="11" width="16" height="10" rx="2"/><path d="M8 11V7a4 4 0 0 1 8 0v4"/></svg>';
+  const FILLER = "Respuesta completa de un buen candidato, adaptada a tu perfil y a esta empresa, con la estructura que esperan oír en la entrevista.";
+  function lockModel(box, filler = FILLER) {
+    box.classList.add("locked");
+    // El texto real no se deja en la página: debajo del desenfoque solo hay relleno.
+    const p = box.querySelector("p");
+    if (p) { p.textContent = filler; p.setAttribute("aria-hidden", "true"); }
+    const b = document.createElement("button");
+    b.type = "button"; b.className = "unlock";
+    b.innerHTML = LOCK_SVG + "<span>Desbloquear</span>";
+    b.addEventListener("click", goToPaywall);
+    box.appendChild(b);
+  }
+  function goToPaywall() {
+    const pw = $("paywall");
+    pw.scrollIntoView({ behavior: matchMedia("(prefers-reduced-motion: reduce)").matches ? "auto" : "smooth", block: "center" });
+    pw.focus({ preventScroll: true });
+  }
+  document.querySelectorAll(".pay-options").forEach((box) => {
+    PAY.forEach((p) => {
+      const b = document.createElement("button");
+      b.type = "button"; b.className = p.cls;
+      b.innerHTML = `${p.label} · <span class="price">${p.price}</span>`;
+      b.addEventListener("click", () => wantToPay(box, p));
+      box.appendChild(b);
     });
-    let saved = false;
-    try {
-      const res = await fetch(FORM_ENDPOINT, { method: "POST", headers: { "Content-Type": "application/json", "Accept": "application/json" }, body: JSON.stringify(data) });
-      saved = res.ok;
-    } catch {}
-    if (!saved) { btn.disabled = false; btn.textContent = "Apuntarme a la lista"; showError(email, "No se ha podido guardar. Revisa tu conexión y vuelve a intentarlo."); return; }
-    const done = document.createElement("div");
-    done.className = "signup done"; done.setAttribute("role", "status"); done.tabIndex = -1;
-    done.innerHTML = "<h3>¡Apuntado!</h3><p>Te escribiremos a <strong></strong> en cuanto abra la versión completa.</p>";
-    done.querySelector("strong").textContent = data.email;
-    form.replaceWith(done); done.focus();
   });
-  [$("email"), $("consent")].forEach((el) => el.addEventListener("input", () => clearError(el)));
+  async function wantToPay(box, p) {
+    const email = (session && session.email) || $("email-start").value.trim();
+    box.querySelectorAll("button").forEach((b) => { b.disabled = true; });
+    const data = {
+      email, opcion: p.opcion, precio: p.price, donde: box.dataset.where, origen: "quiere-pagar",
+      empresa: session ? session.info.name : $("empresa").value, puesto: session ? session.puesto.nombre : "",
+      nota: session && session.score ? fmt(session.score.nota) : "", con_cv: cv ? "sí" : "no", utm: location.search
+    };
+    // Se apunta en el servidor (para contar) y en Formspree (para que llegue un aviso al correo).
+    if (AI_ENDPOINT && emailOk(email)) ai("/interes", { email, opcion: p.opcion }, 15000).catch(() => {});
+    fetch(FORM_ENDPOINT, { method: "POST", headers: { "Content-Type": "application/json", "Accept": "application/json" }, body: JSON.stringify(data) }).catch(() => {});
+    const done = document.createElement("p");
+    done.className = "pay-done"; done.setAttribute("role", "status");
+    done.textContent = emailOk(email)
+      ? `Todavía no está a la venta: estamos viendo cuánta gente la quiere. Te avisaremos a ${email} en cuanto abra, antes que a nadie. No se te ha cobrado nada.`
+      : "Todavía no está a la venta: estamos viendo cuánta gente la quiere. No se te ha cobrado nada.";
+    box.replaceChildren(done);
+  }
 </script>
 </body>
 </html>
