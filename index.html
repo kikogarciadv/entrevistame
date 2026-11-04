@@ -1,0 +1,540 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Entrevístame · Ensaya tu entrevista de trabajo con IA</title>
+<meta name="description" content="Elige la empresa y el puesto, habla en voz alta con una entrevistadora de IA y recibe tu nota. A mitad puede pasar al inglés sin avisar. Apúntate a la lista de espera.">
+<meta property="og:title" content="Entrevístame: ensaya tu entrevista de trabajo con IA">
+<meta property="og:description" content="Habla con una entrevistadora de IA que conoce la empresa, te cambia al inglés sin avisar y te pone nota.">
+<meta name="theme-color" content="#F2F4F8">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='9' fill='%232341E0'/%3E%3Ccircle cx='16' cy='16' r='5' fill='%23E23B3B'/%3E%3C/svg%3E">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,400;12..96,500;12..96,600;12..96,800&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #F2F4F8;
+    --surface: #FFFFFF;
+    --ink: #121733;
+    --ink-soft: #4A5272;
+    --line: #D9DEEA;
+    --cobalt: #2341E0;
+    --cobalt-deep: #1A31AD;
+    --rec: #E23B3B;
+    --note: #FFD447;
+    --radius-window: 22px;
+    --radius-control: 12px;
+    --font: "Bricolage Grotesque", system-ui, sans-serif;
+  }
+  * { box-sizing: border-box; }
+  html { -webkit-text-size-adjust: 100%; }
+  body {
+    margin: 0;
+    background: var(--bg);
+    color: var(--ink);
+    font-family: var(--font);
+    font-size: 1.0625rem;
+    line-height: 1.55;
+    font-optical-sizing: auto;
+  }
+  a { color: var(--cobalt); }
+  :focus-visible { outline: 3px solid var(--cobalt); outline-offset: 3px; border-radius: 6px; }
+  .wrap { width: 100%; max-width: 1120px; margin: 0 auto; padding: 0 20px; }
+
+  /* Barra superior */
+  .top { display: flex; align-items: center; justify-content: space-between; padding-block: 18px; }
+  .brand { display: flex; align-items: center; gap: 10px; font-weight: 800; font-size: 1.2rem; letter-spacing: -0.01em; color: var(--ink); text-decoration: none; }
+  .brand-mark { width: 26px; height: 26px; border-radius: 8px; background: var(--cobalt); display: grid; place-items: center; }
+  .brand-mark span { width: 9px; height: 9px; border-radius: 50%; background: var(--rec); }
+  .top-link { font-weight: 600; color: var(--ink); text-decoration: none; padding: 10px 4px; }
+  .top-link:hover { color: var(--cobalt); }
+
+  /* Hero */
+  .hero { display: grid; gap: 32px; padding: 24px 0 72px; align-items: center; }
+  .hero-text .lede { margin-bottom: 0; }
+  .hero .call { order: 2; }
+  .hero .hero-form { order: 3; }
+  h1 {
+    font-size: clamp(2.5rem, 9vw, 4.6rem);
+    line-height: 0.98;
+    letter-spacing: -0.035em;
+    font-weight: 800;
+    margin: 0 0 22px;
+    max-width: 13ch;
+  }
+  .lede { font-size: 1.2rem; color: var(--ink-soft); max-width: 34ch; margin: 0 0 28px; }
+
+  /* Formulario */
+  .signup { display: grid; gap: 14px; max-width: 440px; }
+  .field label { display: block; font-weight: 600; font-size: 0.95rem; margin-bottom: 6px; }
+  .field .hint { font-weight: 400; color: var(--ink-soft); }
+  .field input, .field select {
+    width: 100%; font: inherit; font-size: 1rem; color: var(--ink);
+    background: var(--surface); border: 1.5px solid var(--line); border-radius: var(--radius-control);
+    padding: 13px 14px; min-height: 50px;
+  }
+  .field input:focus, .field select:focus { border-color: var(--cobalt); outline: none; box-shadow: 0 0 0 3px rgba(35, 65, 224, 0.18); }
+  .field input[aria-invalid="true"] { border-color: var(--rec); }
+  .error { color: #B4232A; font-size: 0.9rem; margin: 6px 0 0; }
+  .consent { display: flex; gap: 10px; align-items: flex-start; font-size: 0.9rem; color: var(--ink-soft); }
+  .consent input { width: 20px; height: 20px; margin: 2px 0 0; accent-color: var(--cobalt); flex: none; }
+  .btn {
+    font: inherit; font-weight: 700; font-size: 1.05rem; cursor: pointer;
+    background: var(--cobalt); color: #fff; border: 0; border-radius: var(--radius-control);
+    padding: 15px 22px; min-height: 52px; transition: background-color 160ms ease, transform 120ms ease;
+  }
+  .btn:hover { background: var(--cobalt-deep); }
+  .btn:active { transform: translateY(1px); }
+  .btn[disabled] { opacity: 0.7; cursor: progress; }
+  .small { font-size: 0.875rem; color: var(--ink-soft); margin: 0; }
+  .done {
+    background: var(--surface); border: 1.5px solid var(--line); border-radius: var(--radius-window);
+    padding: 22px; max-width: 440px;
+  }
+  .done h3 { margin: 0 0 6px; font-size: 1.3rem; letter-spacing: -0.01em; }
+  .done p { margin: 0; color: var(--ink-soft); }
+
+  /* Ventana de videollamada */
+  .call {
+    background: var(--surface); border-radius: var(--radius-window);
+    border: 1.5px solid var(--line);
+    box-shadow: 0 30px 60px -30px rgba(18, 23, 51, 0.35);
+    overflow: hidden; max-width: 520px; width: 100%; justify-self: center;
+  }
+  .call-bar { display: flex; align-items: center; justify-content: space-between; padding: 14px 18px; border-bottom: 1.5px solid var(--line); font-size: 0.92rem; }
+  .call-who { font-weight: 700; }
+  .call-who small { display: block; font-weight: 400; color: var(--ink-soft); font-size: 0.85rem; }
+  .rec { display: inline-flex; align-items: center; gap: 7px; font-weight: 600; color: var(--rec); }
+  .rec i { width: 9px; height: 9px; border-radius: 50%; background: var(--rec); animation: pulse 1.6s ease-in-out infinite; }
+  @keyframes pulse { 50% { opacity: 0.25; } }
+  .call-timer { font-variant-numeric: tabular-nums; color: var(--ink-soft); margin-right: 12px; }
+  .stage { position: relative; background: var(--ink); color: #fff; padding: 36px 18px 28px; display: grid; justify-items: center; gap: 14px; min-height: 290px; align-content: center; }
+  .speaker { position: relative; width: 112px; height: 112px; display: grid; place-items: center; }
+  .speaker .face { position: relative; z-index: 1; width: 96px; height: 96px; border-radius: 50%; background: var(--cobalt); display: grid; place-items: center; font-size: 2.4rem; font-weight: 800; }
+  .speaker .ring { position: absolute; inset: 0; border-radius: 50%; border: 2px solid rgba(255,255,255,0.55); opacity: 0; }
+  .stage[data-speaking="ai"] .speaker .ring { animation: ring 1.6s ease-out infinite; }
+  .stage[data-speaking="ai"] .speaker .ring + .ring { animation-delay: 0.8s; }
+  @keyframes ring { from { transform: scale(0.86); opacity: 0.9; } to { transform: scale(1.35); opacity: 0; } }
+  .speaker-name { font-weight: 600; text-align: center; line-height: 1.3; }
+  .speaker-name small { display: block; font-weight: 400; color: #B9C0DC; font-size: 0.85rem; }
+  .self {
+    position: absolute; right: 12px; bottom: 12px; width: 96px; height: 72px; border-radius: 12px;
+    background: #262C52; display: grid; place-items: center; align-content: center; gap: 4px; font-size: 0.75rem; color: #B9C0DC;
+  }
+  .self svg { width: 20px; height: 20px; }
+  .self .bars { display: flex; gap: 3px; align-items: center; height: 16px; }
+  .self .bars b { width: 3px; height: 4px; border-radius: 2px; background: #fff; transition: height 120ms ease; }
+  .stage[data-speaking="me"] .self { outline: 2px solid #fff; }
+  .stage[data-speaking="me"] .self .bars b { animation: bar 0.5s ease-in-out infinite alternate; }
+  .self .bars b:nth-child(2) { animation-delay: 0.15s; } .self .bars b:nth-child(3) { animation-delay: 0.3s; } .self .bars b:nth-child(4) { animation-delay: 0.1s; }
+  @keyframes bar { to { height: 15px; } }
+  .captions { padding: 16px 18px 6px; min-height: 104px; }
+  .caption-who { font-size: 0.82rem; font-weight: 600; color: var(--ink-soft); display: flex; gap: 8px; align-items: center; margin-bottom: 4px; }
+  .lang { font-size: 0.75rem; font-weight: 700; padding: 1px 7px; border-radius: 999px; background: var(--bg); color: var(--ink); }
+  .lang.en { background: var(--note); }
+  .caption-text { margin: 0; font-size: 1.05rem; line-height: 1.4; }
+  .controls { display: flex; justify-content: center; gap: 14px; padding: 10px 18px 18px; }
+  .controls span { width: 46px; height: 46px; border-radius: 50%; display: grid; place-items: center; background: var(--bg); color: var(--ink); }
+  .controls span.hang { background: var(--rec); color: #fff; width: 58px; border-radius: 999px; }
+  .controls svg { width: 20px; height: 20px; }
+
+  /* Secciones */
+  section { padding: 72px 0; }
+  h2 { font-size: clamp(1.9rem, 5.5vw, 2.9rem); line-height: 1.04; letter-spacing: -0.03em; font-weight: 800; margin: 0 0 18px; max-width: 18ch; }
+  .section-lede { color: var(--ink-soft); max-width: 52ch; margin: 0 0 36px; font-size: 1.1rem; }
+
+  .steps { list-style: none; padding: 0; margin: 0; display: grid; gap: 28px; counter-reset: step; }
+  .steps li { counter-increment: step; display: grid; grid-template-columns: 52px 1fr; gap: 16px; align-items: start; }
+  .steps li::before {
+    content: counter(step); width: 52px; height: 52px; border-radius: 50%;
+    border: 2px solid var(--ink); display: grid; place-items: center; font-weight: 800; font-size: 1.3rem;
+  }
+  .steps h3 { margin: 4px 0 4px; font-size: 1.3rem; letter-spacing: -0.01em; }
+  .steps p { margin: 0; color: var(--ink-soft); max-width: 40ch; }
+
+  /* Nota final */
+  .result { background: var(--ink); color: #fff; }
+  .result .section-lede { color: #B9C0DC; }
+  .result-grid { display: grid; gap: 40px; align-items: center; }
+  .scorecard {
+    background: var(--note); color: var(--ink); border-radius: 6px; padding: 26px 24px 24px;
+    max-width: 380px; width: 100%; transform: rotate(-2deg); justify-self: center;
+    box-shadow: 0 24px 40px -20px rgba(0,0,0,0.6);
+  }
+  .scorecard .sc-head { display: flex; justify-content: space-between; align-items: baseline; font-weight: 600; font-size: 0.95rem; }
+  .scorecard .grade { font-size: 5.4rem; font-weight: 800; line-height: 1; letter-spacing: -0.05em; margin: 10px 0 14px; }
+  .scorecard .grade small { font-size: 1.6rem; letter-spacing: 0; }
+  .scorecard dl { margin: 0 0 16px; display: grid; grid-template-columns: 1fr auto; gap: 6px 12px; font-size: 1rem; }
+  .scorecard dt { margin: 0; }
+  .scorecard dd { margin: 0; font-weight: 700; }
+  .scorecard .roast { margin: 0; padding-top: 14px; border-top: 2px dashed rgba(18,23,51,0.35); font-size: 1.05rem; line-height: 1.35; }
+  .result ul { margin: 0; padding-left: 20px; display: grid; gap: 10px; color: #E3E7F5; max-width: 46ch; }
+
+  /* Cámara */
+  .cam-grid { display: grid; gap: 28px; align-items: end; }
+  .cam-list { list-style: none; padding: 0; margin: 0; display: grid; gap: 16px; max-width: 52ch; }
+  .cam-list li { padding-left: 18px; border-left: 3px solid var(--cobalt); color: var(--ink-soft); }
+  .cam-list strong { color: var(--ink); display: block; }
+  .cam-privacy { margin: 0; background: var(--surface); border: 1.5px solid var(--line); border-radius: var(--radius-window); padding: 22px; max-width: 46ch; color: var(--ink-soft); }
+  .cam-privacy strong { color: var(--ink); display: block; font-size: 1.15rem; margin-bottom: 6px; }
+
+  /* Empresas */
+  .companies { display: flex; flex-wrap: wrap; gap: 10px; list-style: none; padding: 0; margin: 0 0 18px; }
+  .companies li { background: var(--surface); border: 1.5px solid var(--line); border-radius: 999px; padding: 9px 16px; font-weight: 600; }
+  .companies li.more { border-style: dashed; background: transparent; color: var(--ink-soft); }
+
+  /* Preguntas */
+  .faq { display: grid; gap: 0; max-width: 760px; }
+  .faq details { border-top: 1.5px solid var(--line); }
+  .faq details:last-child { border-bottom: 1.5px solid var(--line); }
+  .faq summary { cursor: pointer; list-style: none; padding: 20px 40px 20px 0; font-weight: 700; font-size: 1.15rem; position: relative; }
+  .faq summary::-webkit-details-marker { display: none; }
+  .faq summary::after { content: "+"; position: absolute; right: 6px; top: 16px; font-size: 1.6rem; font-weight: 500; transition: transform 200ms ease; }
+  .faq details[open] summary::after { transform: rotate(45deg); }
+  .faq details p { margin: 0 0 20px; color: var(--ink-soft); max-width: 62ch; }
+
+  .final { text-align: left; }
+  .final .signup { margin-top: 8px; }
+
+  footer { padding-block: 36px 48px; border-top: 1.5px solid var(--line); color: var(--ink-soft); font-size: 0.9rem; }
+  footer p { margin: 0 0 8px; max-width: 70ch; }
+
+  @media (min-width: 900px) {
+    .hero { grid-template-columns: 1.05fr 1fr; grid-template-areas: "text call" "form call"; column-gap: 40px; row-gap: 28px; padding-top: 48px; padding-bottom: 96px; }
+    .hero-text { grid-area: text; align-self: end; }
+    .hero .hero-form { grid-area: form; align-self: start; }
+    .hero .call { grid-area: call; }
+    .steps { grid-template-columns: repeat(3, 1fr); gap: 32px; }
+    .steps li { grid-template-columns: 1fr; }
+    .result-grid { grid-template-columns: 1fr 1fr; }
+    .cam-grid { grid-template-columns: 1.2fr 1fr; gap: 48px; }
+    section { padding: 96px 0; }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .rec i, .stage .ring, .self .bars b { animation: none !important; }
+    .btn, .faq summary::after { transition: none; }
+  }
+</style>
+</head>
+<body>
+
+<header class="wrap top">
+  <a class="brand" href="#">
+    <span class="brand-mark" aria-hidden="true"><span></span></span>
+    Entrevístame
+  </a>
+  <a class="top-link" href="#apuntarme">Lista de espera</a>
+</header>
+
+<main>
+  <div class="wrap hero">
+    <div class="hero-text">
+      <h1>Ensaya tu entrevista antes de jugártela.</h1>
+      <p class="lede">Es una llamada: eliges la empresa y el puesto, y una entrevistadora de IA te entrevista de viva voz. A mitad puede pasarse al inglés sin avisar. Al colgar, te pone nota.</p>
+    </div>
+
+      <form class="signup hero-form" id="form-hero" novalidate>
+        <div class="field">
+          <label for="email-hero">Tu email</label>
+          <input id="email-hero" name="email" type="email" autocomplete="email" inputmode="email" required>
+        </div>
+        <div class="field">
+          <label for="empresa-hero">¿Para qué empresa te quieres preparar? <span class="hint">(opcional)</span></label>
+          <input id="empresa-hero" name="empresa" type="text" autocomplete="organization">
+        </div>
+        <div class="field">
+          <label for="cuando-hero">¿Cuándo es tu próxima entrevista?</label>
+          <select id="cuando-hero" name="cuando">
+            <option value="sin-fecha">Todavía no tengo ninguna</option>
+            <option value="esta-semana">Esta semana</option>
+            <option value="este-mes">Este mes</option>
+            <option value="mas-adelante">Más adelante</option>
+          </select>
+        </div>
+        <label class="consent">
+          <input type="checkbox" name="consentimiento" required>
+          <span>Acepto que me escribáis cuando abra la app. Nada más. Ver <a href="#privacidad">privacidad</a>.</span>
+        </label>
+        <button class="btn" type="submit">Apuntarme a la lista</button>
+        <p class="small">Los primeros de la lista la prueban gratis antes que nadie.</p>
+      </form>
+
+    <div class="call" role="img" aria-label="Ejemplo de llamada: Lucía, la entrevistadora de IA, te pregunta en voz alta por qué quieres trabajar en Mercadona, respondes hablando y de repente sigue en inglés. Tu cámara está apagada.">
+      <div class="call-bar" aria-hidden="true">
+        <span class="call-who">Entrevista para Mercadona<small>Gerente de tienda</small></span>
+        <span><span class="call-timer" id="timer">04:12</span><span class="rec"><i></i>En llamada</span></span>
+      </div>
+      <div class="stage" id="stage" data-speaking="ai" aria-hidden="true">
+        <div class="speaker"><span class="ring"></span><span class="ring"></span><span class="face">L</span></div>
+        <div class="speaker-name">Lucía<small>Entrevistadora de IA</small></div>
+        <div class="self">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M16 16v1a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V7a2 2 0 0 1 2-2h2m5.66 0H14a2 2 0 0 1 2 2v3.34l1 1L23 7v10"/><line x1="1" y1="1" x2="23" y2="23"/></svg>
+          <span class="bars"><b></b><b></b><b></b><b></b></span>
+          Tú
+        </div>
+      </div>
+      <div class="captions" aria-hidden="true">
+        <div class="caption-who"><span id="cap-who">Lucía</span><span class="lang" id="cap-lang">ES</span></div>
+        <p class="caption-text" id="cap-text">¿Por qué quieres trabajar en Mercadona y no en otro supermercado?</p>
+      </div>
+      <div class="controls" aria-hidden="true">
+        <span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="2" width="6" height="12" rx="3"/><path d="M5 10v1a7 7 0 0 0 14 0v-1"/><line x1="12" y1="18" x2="12" y2="22"/></svg></span>
+        <span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M16 16v1a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V7a2 2 0 0 1 2-2h2m5.66 0H14a2 2 0 0 1 2 2v3.34l1 1L23 7v10"/><line x1="1" y1="1" x2="23" y2="23"/></svg></span>
+        <span class="hang"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10.7 13.3a16 16 0 0 0 3.4 2.6l1.3-1.3a2 2 0 0 1 2.1-.4c.9.3 1.8.5 2.7.6a2 2 0 0 1 1.7 2v3a2 2 0 0 1-2.2 2A19.8 19.8 0 0 1 3 4.2 2 2 0 0 1 5 2h3a2 2 0 0 1 2 1.7c.1.9.3 1.8.6 2.7a2 2 0 0 1-.4 2.1L8.9 9.8" transform="rotate(135 12 12)"/></svg></span>
+      </div>
+    </div>
+  </div>
+
+  <section aria-labelledby="como">
+    <div class="wrap">
+      <h2 id="como">Así funciona</h2>
+      <p class="section-lede">Una entrevista completa dura unos 15 minutos. Solo necesitas el móvil y un sitio tranquilo para hablar.</p>
+      <ol class="steps">
+        <li>
+          <div>
+            <h3>Elige empresa y puesto</h3>
+            <p>Por ejemplo, Inditex para dependiente o Accenture para analista. La entrevista se adapta a cómo selecciona esa empresa.</p>
+          </div>
+        </li>
+        <li>
+          <div>
+            <h3>Contesta la llamada</h3>
+            <p>Nada de escribir: hablas con ella como con una persona. Te pregunta, repregunta si te quedas corto y, cuando menos te lo esperas, sigue en inglés.</p>
+          </div>
+        </li>
+        <li>
+          <div>
+            <h3>Recibe tu nota</h3>
+            <p>Te dice qué respondiste bien, qué sobraba y cómo mejorarlo antes de la entrevista de verdad.</p>
+          </div>
+        </li>
+      </ol>
+    </div>
+  </section>
+
+  <section class="result" aria-labelledby="nota">
+    <div class="wrap result-grid">
+      <div>
+        <h2 id="nota">Una nota sincera. A veces demasiado.</h2>
+        <p class="section-lede">Al acabar recibes tu informe. Si te atreves, compártelo.</p>
+        <ul>
+          <li>Nota por apartados: contenido, seguridad, inglés y claridad.</li>
+          <li>Las muletillas que repites y cuántas veces.</li>
+          <li>Con la cámara encendida, también tu mirada, tus silencios y tus gestos.</li>
+          <li>Cómo habría respondido un buen candidato a cada pregunta.</li>
+          <li>Tu progreso entre un ensayo y el siguiente.</li>
+        </ul>
+      </div>
+      <div class="scorecard" role="img" aria-label="Ejemplo de nota: 6,4 sobre 10. Contenido 7, seguridad 6, inglés 5, claridad 7,5, mirada a cámara 62 por ciento. Comentario: dijiste o sea 14 veces y en inglés pasaste de gerente a turista.">
+        <div class="sc-head" aria-hidden="true"><span>Mercadona, gerente</span><span>Ensayo 1</span></div>
+        <div class="grade" aria-hidden="true">6,4<small>/10</small></div>
+        <dl aria-hidden="true">
+          <dt>Contenido</dt><dd>7</dd>
+          <dt>Seguridad</dt><dd>6</dd>
+          <dt>Inglés</dt><dd>5</dd>
+          <dt>Claridad</dt><dd>7,5</dd>
+          <dt>Mirada a cámara</dt><dd>62 %</dd>
+        </dl>
+        <p class="roast" aria-hidden="true">Dijiste «o sea» 14 veces. Y al pasar al inglés, de gerente a turista en dos frases.</p>
+      </div>
+    </div>
+  </section>
+
+  <section aria-labelledby="camara">
+    <div class="wrap cam-grid">
+      <div>
+        <h2 id="camara">Si quieres, enciende la cámara</h2>
+        <p class="section-lede">Es opcional. Sin cámara, la entrevista funciona igual. Con ella, la nota también se fija en lo que no dices.</p>
+        <ul class="cam-list">
+          <li><strong>Hacia dónde miras.</strong> Si miras a la cámara o se te van los ojos a un papel o a otra pantalla.</li>
+          <li><strong>Cuánto tardas en responder.</strong> Los silencios largos antes de empezar a hablar.</li>
+          <li><strong>Cómo gesticulas.</strong> Si te tocas la cara, te balanceas o te quedas rígido.</li>
+        </ul>
+      </div>
+      <p class="cam-privacy"><strong>Tu cara no sale de tu móvil.</strong> La imagen se analiza en tu propio dispositivo mientras hablas. No se graba ni se envía a ningún sitio: solo guardamos el resultado, por ejemplo «miraste a cámara el 62 % del tiempo».</p>
+    </div>
+  </section>
+
+  <section aria-labelledby="empresas">
+    <div class="wrap">
+      <h2 id="empresas">Empezamos por las que más contratan</h2>
+      <p class="section-lede">Preparamos cada empresa con su proceso real: fases, tipo de preguntas y si suele haber parte en inglés.</p>
+      <ul class="companies">
+        <li>Mercadona</li><li>Inditex</li><li>Decathlon</li><li>El Corte Inglés</li><li>Santander</li><li>BBVA</li><li>CaixaBank</li><li>Accenture</li><li>Deloitte</li><li>PwC</li><li>Amazon</li>
+        <li class="more">¿Falta la tuya? Escríbela al apuntarte</li>
+      </ul>
+      <p class="small">Entrevístame no tiene relación con estas empresas. Las entrevistas se basan en información pública y en experiencias de candidatos.</p>
+    </div>
+  </section>
+
+  <section aria-labelledby="dudas">
+    <div class="wrap">
+      <h2 id="dudas">Preguntas</h2>
+      <div class="faq">
+        <details>
+          <summary>¿Cuánto costará?</summary>
+          <p>La primera entrevista será gratis. Después pagarás solo cuando la necesites, por packs de entrevistas y sin suscripción. Quien se apunte ahora tendrá entrevistas gratis extra al abrir.</p>
+        </details>
+        <details>
+          <summary>¿Cuándo estará lista?</summary>
+          <p>La estamos construyendo ahora. Te escribiremos en cuanto abra, empezando por los primeros de la lista.</p>
+        </details>
+        <details>
+          <summary>¿En qué se diferencia de preguntarle a ChatGPT?</summary>
+          <p>No tienes que saber qué pedirle. Eliges la empresa y empieza una entrevista realista, con su proceso, repreguntas, cambio al inglés y una nota con la que ver si mejoras.</p>
+        </details>
+        <details>
+          <summary>¿Es una llamada de verdad o un chat?</summary>
+          <p>Una llamada. No escribes nada: la entrevistadora te habla, tú le respondes en voz alta y la conversación sigue según lo que digas. Si quieres, puedes activar los subtítulos.</p>
+        </details>
+        <details>
+          <summary>¿Graban mi voz o mi cara?</summary>
+          <p>Tu voz se usa solo para hacer la entrevista y darte la nota. No la vendemos ni la compartimos con nadie. La cámara es opcional y tu imagen se analiza en tu propio móvil: no se graba ni se envía.</p>
+        </details>
+      </div>
+    </div>
+  </section>
+
+  <section class="final" id="apuntarme" aria-labelledby="final">
+    <div class="wrap">
+      <h2 id="final">Llega a tu próxima entrevista habiéndola hecho ya.</h2>
+      <p class="section-lede">Apúntate y te avisamos en cuanto puedas probarla.</p>
+      <form class="signup" id="form-final" novalidate>
+        <div class="field">
+          <label for="email-final">Tu email</label>
+          <input id="email-final" name="email" type="email" autocomplete="email" inputmode="email" required>
+        </div>
+        <div class="field">
+          <label for="empresa-final">¿Para qué empresa te quieres preparar? <span class="hint">(opcional)</span></label>
+          <input id="empresa-final" name="empresa" type="text" autocomplete="organization">
+        </div>
+        <div class="field">
+          <label for="cuando-final">¿Cuándo es tu próxima entrevista?</label>
+          <select id="cuando-final" name="cuando">
+            <option value="sin-fecha">Todavía no tengo ninguna</option>
+            <option value="esta-semana">Esta semana</option>
+            <option value="este-mes">Este mes</option>
+            <option value="mas-adelante">Más adelante</option>
+          </select>
+        </div>
+        <label class="consent">
+          <input type="checkbox" name="consentimiento" required>
+          <span>Acepto que me escribáis cuando abra la app. Nada más. Ver <a href="#privacidad">privacidad</a>.</span>
+        </label>
+        <button class="btn" type="submit">Apuntarme a la lista</button>
+      </form>
+    </div>
+  </section>
+</main>
+
+<footer class="wrap" id="privacidad">
+  <p><strong>Privacidad.</strong> Guardamos tu email, la empresa y la fecha de tu entrevista solo para avisarte cuando abra Entrevístame y para saber qué empresas preparar primero. No los compartimos con nadie. Puedes pedir que los borremos escribiendo a <a href="mailto:kikogdv@gmail.com">kikogdv@gmail.com</a>.</p>
+  <p>Entrevístame · 2026</p>
+</footer>
+
+<script>
+  // Pega aquí la URL de tu formulario (por ejemplo, el endpoint de Formspree: https://formspree.io/f/xxxxxxx).
+  // Mientras esté vacía, la página funciona en modo prueba y no guarda nada.
+  const FORM_ENDPOINT = "";
+
+  // Demo de la llamada: una sola secuencia al cargar; se queda en la pregunta en inglés.
+  (function demoCall() {
+    const stage = document.getElementById("stage");
+    const who = document.getElementById("cap-who");
+    const lang = document.getElementById("cap-lang");
+    const text = document.getElementById("cap-text");
+    const timer = document.getElementById("timer");
+    const steps = [
+      { speaking: "me", who: "Tú", lang: "ES", text: "Pues… me gusta mucho el trato con el cliente y creo que…" },
+      { speaking: "ai", who: "Lucía", lang: "EN", text: "Okay. Let's continue in English. Tell me about a time you had to deal with an angry customer." }
+    ];
+    const show = (s) => {
+      stage.dataset.speaking = s.speaking;
+      who.textContent = s.who;
+      lang.textContent = s.lang;
+      lang.classList.toggle("en", s.lang === "EN");
+      text.textContent = s.text;
+    };
+    if (matchMedia("(prefers-reduced-motion: reduce)").matches) { show(steps[1]); return; }
+    let secs = 252;
+    setInterval(() => { secs++; timer.textContent = String(Math.floor(secs / 60)).padStart(2, "0") + ":" + String(secs % 60).padStart(2, "0"); }, 1000);
+    setTimeout(() => show(steps[0]), 2600);
+    setTimeout(() => show(steps[1]), 5600);
+  })();
+
+  const emailOk =(v) => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(v.trim());
+
+  function showError(input, text) {
+    clearError(input);
+    input.setAttribute("aria-invalid", "true");
+    const p = document.createElement("p");
+    p.className = "error";
+    p.id = input.id + "-error";
+    p.textContent = text;
+    input.setAttribute("aria-describedby", p.id);
+    (input.closest(".field") || input.closest(".consent")).appendChild(p);
+  }
+  function clearError(input) {
+    input.removeAttribute("aria-invalid");
+    input.removeAttribute("aria-describedby");
+    const old = document.getElementById(input.id + "-error");
+    if (old) old.remove();
+  }
+
+  document.querySelectorAll("form.signup").forEach((form, i) => {
+    const email = form.querySelector('input[type="email"]');
+    const consent = form.querySelector('input[name="consentimiento"]');
+    consent.id = consent.id || "consent-" + i;
+    email.addEventListener("input", () => clearError(email));
+    consent.addEventListener("change", () => clearError(consent));
+
+    form.addEventListener("submit", async (e) => {
+      e.preventDefault();
+      let ok = true;
+      if (!emailOk(email.value)) { showError(email, "Escribe un email válido, por ejemplo nombre@gmail.com."); ok = false; }
+      if (!consent.checked) { showError(consent, "Marca la casilla para que podamos avisarte."); ok = false; }
+      if (!ok) { form.querySelector('[aria-invalid="true"]').focus(); return; }
+
+      const btn = form.querySelector("button");
+      btn.disabled = true;
+      btn.textContent = "Apuntándote…";
+      const data = Object.fromEntries(new FormData(form));
+      data.origen = form.id;
+      data.utm = location.search;
+
+      let saved = false;
+      if (FORM_ENDPOINT) {
+        try {
+          const res = await fetch(FORM_ENDPOINT, {
+            method: "POST",
+            headers: { "Content-Type": "application/json", "Accept": "application/json" },
+            body: JSON.stringify(data)
+          });
+          saved = res.ok;
+        } catch (err) { saved = false; }
+        if (!saved) {
+          btn.disabled = false;
+          btn.textContent = "Apuntarme a la lista";
+          showError(email, "No se ha podido guardar. Revisa tu conexión y vuelve a intentarlo.");
+          return;
+        }
+      } else {
+        console.warn("FORM_ENDPOINT vacío: modo prueba, no se ha guardado nada.", data);
+      }
+
+      const done = document.createElement("div");
+      done.className = "done";
+      done.setAttribute("role", "status");
+      done.tabIndex = -1;
+      done.innerHTML = "<h3>¡Apuntado!</h3><p>Te escribiremos a <strong></strong> en cuanto puedas probarla." +
+        (FORM_ENDPOINT ? "" : " <em>(Modo prueba: no se ha guardado.)</em>") + "</p>";
+      done.querySelector("strong").textContent = data.email;
+      form.replaceWith(done);
+      done.focus();
+    });
+  });
+</script>
+</body>
+</html>
